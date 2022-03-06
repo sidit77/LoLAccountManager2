@@ -4,7 +4,7 @@ mod icons;
 mod button;
 
 use druid::widget::prelude::*;
-use druid::widget::{Button, Flex, List, MainAxisAlignment, Scroll, TextBox};
+use druid::widget::{Button, Either, Flex, Label, List, MainAxisAlignment, Scroll, TextBox};
 use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt, TextAlignment};
 use druid::im::{Vector};
 use crate::button::IconButton;
@@ -13,6 +13,7 @@ use crate::icons::Icon;
 #[derive(Clone, Data, Lens)]
 struct AppData {
     filter: String,
+    edit_mode: bool,
     accounts: Vector<String>
 }
 
@@ -33,6 +34,7 @@ pub fn main() {
         })
         .launch(AppData {
             filter: "".to_string(),
+            edit_mode: false,
             accounts: NAMES.iter().map(|s| s.to_string()).collect()
         })
         .expect("launch failed");
@@ -54,9 +56,12 @@ fn build_widget() -> impl Widget<AppData> {
             .with_spacer(3.0)
             .with_child(Flex::row()
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
-                .with_flex_child(IconButton::new(&icons::EDIT).on_click(|_,_,_| println!("edit")), 1.0)
+                .with_flex_child(IconButton::new(&icons::EDIT)
+                    .on_click(|_, mode: &mut bool ,_| *mode = !*mode)
+                    .lens(AppData::edit_mode), 1.0)
                 .with_spacer(3.0)
-                .with_flex_child(IconButton::new(&icons::PREFERENCES).on_click(|_,_,_| println!("settings")), 1.0) //Button::new("O").expand()
+                .with_flex_child(IconButton::new(&icons::PREFERENCES)
+                    .on_click(|_,_,_| println!("settings")), 1.0) //Button::new("O").expand()
                 .fix_width(83.0)
                 .expand_height()
                 .padding(3.0)
@@ -65,7 +70,7 @@ fn build_widget() -> impl Widget<AppData> {
             .expand_width()
             .fix_height(50.0))
         .with_spacer(3.0)
-        .with_flex_child(account_list()
+        .with_flex_child(Either::new(|data: &AppData, _ | !data.edit_mode, standard_account_view(), edit_account_view())
              .expand()
              .padding(3.0)
              .border(Color::GRAY, 2.0)
@@ -73,32 +78,62 @@ fn build_widget() -> impl Widget<AppData> {
         .padding(5.0)
 }
 
-fn account_list() -> impl Widget<AppData> {
-    //let mut col = Flex::column();
-    //for i in 0..30 {
-    //    col.add_child(Padding::new(3.0, Button::new(format!("Account {}", i + 1)).fix_height(50.0).expand_width()));
-    //}
-    //Scroll::new(col.expand_width()).vertical().expand()
+fn standard_account_view() -> impl Widget<AppData> {
     Scroll::new(List::new(|| {
-        Button::new(|(_, item): &(Vector<String>, String), _env: &_| format!("{}", item))
-            .on_click(|_ctx, (shared, item): &mut (Vector<String>, String), _env| {
-                shared.retain(|v| v != item);
+        Button::new(|(_, item): &(Vector<String>, String), _: &_| format!("{}", item))
+            .on_click(|_ctx, (_, acc): &mut (Vector<String>, String), _env| {
+                println!("Login: {}", acc);
             })
             .padding(3.0)
             .expand()
             .height(50.0)
     }))
     .vertical()
-    .lens(lens::Identity.map(
-        // Expose shared data with children data
-        |d: &AppData| (d.accounts.clone(), d.accounts.iter().filter(|s|s.to_lowercase().contains(&d.filter.to_lowercase())).cloned().collect()),
-        |d: &mut AppData, x: (Vector<String>, Vector<String>)| {
-            // If shared data was changed reflect the changes in our AppData
-            d.accounts = x.0
-        },
-    ))
+    .lens(account_filter_lens())
 }
 
+fn edit_account_view() -> impl Widget<AppData> {
+    Scroll::new(
+        Flex::column()
+            .with_flex_child(
+                List::new(|| {
+                        Button::new(|(_, item): &(Vector<String>, String), _: &_| format!("{}", item))
+                            .on_click(|_ctx, (shared, item): &mut (Vector<String>, String), _env| {
+                                shared.retain(|v| v != item);
+                            })
+                            .padding(3.0)
+                            .expand()
+                            .height(50.0)
+                    }), 1.0)
+            .with_child(
+                Button::new("Test")
+                    //.padding(3.0)
+                    //.expand_width()
+                    //.fix_height(50.0)
+                    //.background(Color::BLACK)
+            )
+    )
+    .vertical()
+    .lens(account_filter_lens())
+}
+
+fn account_filter_lens() -> impl Lens<AppData, (Vector<String>, Vector<String>)> {
+    lens::Identity.map(
+        |d: &AppData| {
+            (d.accounts.clone(),
+             d.accounts
+                 .iter()
+                 .filter(|s|s
+                     .to_lowercase()
+                     .contains(&d.filter.to_lowercase()))
+                 .cloned()
+                 .collect())
+        },
+        |d: &mut AppData, x: (Vector<String>, Vector<String>)| {
+            d.accounts = x.0
+        },
+    )
+}
 
 
 const NAMES: &[&str] = &[
