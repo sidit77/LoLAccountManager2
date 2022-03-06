@@ -1,5 +1,4 @@
 use druid::{kurbo::BezPath, widget::prelude::*, Affine, Color, KeyOrValue, Size, theme};
-use crate::IconButton;
 
 //Font Awesome Free 5.2.0 by @fontawesome - https://fontawesome.com
 
@@ -49,17 +48,17 @@ impl From<&SvgIcon> for Icon {
     }
 }
 
-impl Icon {
-
-    pub fn with_color(mut self, color: impl Into<KeyOrValue<Color>>) -> Self {
-        self.set_color(color);
-        self
-    }
-
-    pub fn set_color(&mut self, color: impl Into<KeyOrValue<Color>>) {
-        self.color = color.into();
-    }
-}
+//impl Icon {
+//
+//    pub fn with_color(mut self, color: impl Into<KeyOrValue<Color>>) -> Self {
+//        self.set_color(color);
+//        self
+//    }
+//
+//    pub fn set_color(&mut self, color: impl Into<KeyOrValue<Color>>) {
+//        self.color = color.into();
+//    }
+//}
 
 impl<T> Widget<T> for Icon {
     fn event(&mut self, _ctx: &mut EventCtx, _ev: &Event, _data: &mut T, _env: &Env) {}

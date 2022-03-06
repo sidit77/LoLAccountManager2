@@ -4,11 +4,16 @@ mod icons;
 mod button;
 
 use druid::widget::prelude::*;
-use druid::widget::{Button, Flex, Label, MainAxisAlignment, Padding, Scroll};
-use druid::{AppLauncher, Color,LocalizedString, theme, WidgetExt, WindowDesc};
+use druid::widget::{Button, Flex, Label, List, MainAxisAlignment, Scroll};
+use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt};
+use druid::im::{Vector};
 use crate::button::IconButton;
 use crate::icons::Icon;
 
+#[derive(Clone, Data, Lens)]
+struct AppData {
+    accounts: Vector<String>
+}
 
 pub fn main() {
     let window = WindowDesc::new(build_widget)
@@ -22,11 +27,13 @@ pub fn main() {
             env.set(theme::WINDOW_BACKGROUND_COLOR, Color::WHITE);
 
         })
-        .launch(0u32)
+        .launch(AppData {
+            accounts: (1..=30).map(|i| format!("Account {}", i)).collect()
+        })
         .expect("launch failed");
 }
 
-fn build_widget() -> impl Widget<u32> {
+fn build_widget() -> impl Widget<AppData> {
     Flex::column()
         .with_child(Flex::row()
             .with_flex_child(Label::new("PLACEHOLDER").center()
@@ -37,9 +44,9 @@ fn build_widget() -> impl Widget<u32> {
             .with_spacer(3.0)
             .with_child(Flex::row()
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
-                .with_flex_child(IconButton::new(&icons::EDIT), 1.0)
+                .with_flex_child(IconButton::new(&icons::EDIT).on_click(|_,_,_| println!("edit")), 1.0)
                 .with_spacer(3.0)
-                .with_flex_child(IconButton::new(&icons::PREFERENCES), 1.0) //Button::new("O").expand()
+                .with_flex_child(IconButton::new(&icons::PREFERENCES).on_click(|_,_,_| println!("settings")), 1.0) //Button::new("O").expand()
                 .fix_width(83.0)
                 .expand_height()
                 .padding(3.0)
@@ -56,10 +63,28 @@ fn build_widget() -> impl Widget<u32> {
         .padding(5.0)
 }
 
-fn account_list() -> impl Widget<u32> {
-    let mut col = Flex::column();
-    for i in 0..30 {
-        col.add_child(Padding::new(3.0, Button::new(format!("Account {}", i + 1)).fix_height(50.0).expand_width()));
-    }
-    Scroll::new(col.expand_width()).vertical().expand()
+fn account_list() -> impl Widget<AppData> {
+    //let mut col = Flex::column();
+    //for i in 0..30 {
+    //    col.add_child(Padding::new(3.0, Button::new(format!("Account {}", i + 1)).fix_height(50.0).expand_width()));
+    //}
+    //Scroll::new(col.expand_width()).vertical().expand()
+    Scroll::new(List::new(|| {
+        Button::new(|(_, item): &(Vector<String>, String), _env: &_| format!("{}", item))
+            .on_click(|_ctx, (shared, item): &mut (Vector<String>, String), _env| {
+                shared.retain(|v| v != item);
+            })
+            .padding(3.0)
+            .expand()
+            .height(50.0)
+    }))
+    .vertical()
+    .lens(lens::Identity.map(
+        // Expose shared data with children data
+        |d: &AppData| (d.accounts.clone(), d.accounts.clone()),
+        |d: &mut AppData, x: (Vector<String>, Vector<String>)| {
+            // If shared data was changed reflect the changes in our AppData
+            d.accounts = x.0
+        },
+    ))
 }
