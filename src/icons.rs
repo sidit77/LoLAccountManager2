@@ -43,7 +43,7 @@ impl From<&SvgIcon> for Icon {
             bez_path,
             base_size: svg.svg_size,
             size: Size::ZERO,
-            color: theme::LABEL_COLOR.into(),
+            color: theme::TEXT_COLOR.into(),
         }
     }
 }

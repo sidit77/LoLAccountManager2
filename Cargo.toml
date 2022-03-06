@@ -9,4 +9,4 @@ edition = "2021"
 lto = true
 
 [dependencies]
-druid = { version = "0.7.0", features = ["im"]}
+druid = { git = "https://github.com/linebender/druid.git", features = ["im"]}
