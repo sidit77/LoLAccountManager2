@@ -4,14 +4,15 @@ mod icons;
 mod button;
 
 use druid::widget::prelude::*;
-use druid::widget::{Button, Flex, Label, List, MainAxisAlignment, Scroll};
-use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt};
+use druid::widget::{Button, Flex, List, MainAxisAlignment, Scroll, TextBox};
+use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt, TextAlignment};
 use druid::im::{Vector};
 use crate::button::IconButton;
 use crate::icons::Icon;
 
 #[derive(Clone, Data, Lens)]
 struct AppData {
+    filter: String,
     accounts: Vector<String>
 }
 
@@ -25,10 +26,14 @@ pub fn main() {
             env.set(theme::BUTTON_LIGHT, Color::AQUA);
             env.set(theme::LABEL_COLOR, Color::BLACK);
             env.set(theme::WINDOW_BACKGROUND_COLOR, Color::WHITE);
+            env.set(theme::BACKGROUND_LIGHT, Color::WHITE);
+            env.set(theme::CURSOR_COLOR, Color::BLACK);
+            env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0);
 
         })
         .launch(AppData {
-            accounts: (1..=30).map(|i| format!("Account {}", i)).collect()
+            filter: "".to_string(),
+            accounts: NAMES.iter().map(|s| s.to_string()).collect()
         })
         .expect("launch failed");
 }
@@ -36,7 +41,12 @@ pub fn main() {
 fn build_widget() -> impl Widget<AppData> {
     Flex::column()
         .with_child(Flex::row()
-            .with_flex_child(Label::new("PLACEHOLDER").center()
+            .with_flex_child(TextBox::new()
+                .with_text_alignment(TextAlignment::Center)
+                .with_placeholder("Search...")
+                .lens(AppData::filter)
+                .expand_width()
+                .center()
                 .expand()
                 .padding(3.0)
                 .border(Color::GRAY, 2.0)
@@ -81,10 +91,63 @@ fn account_list() -> impl Widget<AppData> {
     .vertical()
     .lens(lens::Identity.map(
         // Expose shared data with children data
-        |d: &AppData| (d.accounts.clone(), d.accounts.clone()),
+        |d: &AppData| (d.accounts.clone(), d.accounts.iter().filter(|s|s.to_lowercase().contains(&d.filter.to_lowercase())).cloned().collect()),
         |d: &mut AppData, x: (Vector<String>, Vector<String>)| {
             // If shared data was changed reflect the changes in our AppData
             d.accounts = x.0
         },
     ))
 }
+
+
+
+const NAMES: &[&str] = &[
+    "Allegra",
+    "Bree",
+    "Bryna",
+    "Carrissa",
+    "Clair",
+    "Cleopatra",
+    "Corinna",
+    "Dacia",
+    "Dinah",
+    "Dionis",
+    "Ermentrude",
+    "Felicdad",
+    "Flori",
+    "Geneva",
+    "Gussie",
+    "Jazmin",
+    "Jeannette",
+    "Jenine",
+    "Joann",
+    "Layney",
+    "Leona",
+    "Lizzy",
+    "Lucita",
+    "Lyndsey",
+    "Marcelia",
+    "Marlene",
+    "Mirabelle",
+    "Nanci",
+    "Nyssa",
+    "Ora",
+    "Paula",
+    "Phyllis",
+    "Prissie",
+    "Riannon",
+    "Roby",
+    "Salomi",
+    "Shaylyn",
+    "Shela",
+    "Siobhan",
+    "Sioux",
+    "Susanetta",
+    "Tallulah",
+    "Tiffi",
+    "Valentine",
+    "Van",
+    "Verine",
+    "Wallie",
+    "Yvonne",
+];
