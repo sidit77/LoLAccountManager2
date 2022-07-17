@@ -4,7 +4,7 @@ mod icons;
 mod button;
 
 use druid::widget::prelude::*;
-use druid::widget::{Button, Either, Flex, Label, List, MainAxisAlignment, Scroll, TextBox};
+use druid::widget::{Button, Either, Flex, Label, List, ListIter, MainAxisAlignment, Scroll, TextBox};
 use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt, TextAlignment};
 use druid::im::{Vector};
 use crate::button::IconButton;
@@ -134,32 +134,26 @@ fn standard_account_view() -> impl Widget<AppData> {
 fn edit_account_view() -> impl Widget<AppData> {
     Scroll::new(List::new(|| {
         Flex::row()
-            .with_flex_child(Label::new(|(_, item): &(Vector<String>, String), _: &_| format!("{}", item))
+            .with_flex_child(Label::new(|entry: &ListEntry<String>, _: &_| format!("{}", entry.value()))
                                  .center()
                                  .expand()
                                  .padding(3.0), 1.0)
             .with_spacer(3.0)
             .with_child(Button::new("Edit")
-                .on_click(|_,_,_| println!("edit"))
+                .on_click(|_,entry: &mut ListEntry<String>,_| entry.value_mut().push('x'))
                 .expand_height()
                 .padding(3.0))
             .with_child(Flex::column()
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
                 .with_flex_child(Button::new("Up")
-                    .disabled_if(|(list, acc): &(Vector<String>, String), _: &_| list.front().map(|v| v == acc).unwrap_or(false))
-                    .on_click(|_, (list, acc): &mut (Vector<String>, String), _| {
-                        let i = list.iter().position(|v| v == acc).unwrap();
-                        list.swap(i, i - 1);
-                    }), 1.0)
+                    .disabled_if(|entry: &ListEntry<String>, _: &_| entry.is_first())
+                    .on_click(|_, entry: &mut ListEntry<String>, _| entry.move_relative(-1)), 1.0)
                 .with_flex_child(Button::new("Down")
-                    .disabled_if(|(list, acc): &(Vector<String>, String), _: &_| list.back().map(|v| v == acc).unwrap_or(false))
-                    .on_click(|_, (list, acc): &mut (Vector<String>, String), _| {
-                        let i = list.iter().position(|v| v == acc).unwrap();
-                        list.swap(i, i + 1);
-                    }), 1.0)
+                    .disabled_if(|entry: &ListEntry<String>, _: &_| entry.is_last())
+                    .on_click(|_, entry: &mut ListEntry<String>, _| entry.move_relative(1)), 1.0)
                 .expand_height())
             .with_child(Button::new("Delete")
-                .on_click(|_, (list, acc): &mut (Vector<String>, String), _| list.retain(|v| v != acc))
+                .on_click(|_, entry: &mut ListEntry<String>, _| entry.delete())
                 .expand_height()
                 .padding(3.0))
             .expand_width()
@@ -169,11 +163,104 @@ fn edit_account_view() -> impl Widget<AppData> {
     }).with_spacing(3.0))
     .vertical()
     .lens(lens::Identity.map(
-        |d: &AppData| (d.accounts.clone(), d.accounts.clone()),
-        |d: &mut AppData, x: (Vector<String>, Vector<String>)| d.accounts = x.0,
+        |d: &AppData| {
+            //println!("get");
+            VectorWrapper(d.accounts.clone())
+        },
+        |d: &mut AppData, x: VectorWrapper<String>| {
+            //println!("put");
+            d.accounts = x.0
+        },
     ))
 }
 
+#[derive(Clone)]
+struct VectorWrapper<T: Data>(Vector<T>);
+
+impl<T: Data> Data for VectorWrapper<T> {
+    fn same(&self, other: &Self) -> bool {
+        self.0.same(&other.0)
+    }
+}
+
+impl<T: Data> ListIter<ListEntry<T>> for VectorWrapper<T> {
+    fn for_each(&self, mut cb: impl FnMut(&ListEntry<T>, usize)) {
+        for (i, item) in self.0.iter().enumerate() {
+            let d = ListEntry {
+                list: self.0.to_owned(),
+                cached_item: item.to_owned(),
+                index: i
+            };
+            cb(&d, i);
+        }
+    }
+
+    fn for_each_mut(&mut self, mut cb: impl FnMut(&mut ListEntry<T>, usize)) {
+        for (i, item) in self.0.clone().iter().enumerate() {
+            let mut d = ListEntry {
+                list: self.0.clone(),
+                cached_item: item.to_owned(),
+                index: i
+            };
+            cb(&mut d, i);
+            if !self.0.same(&d.list){
+                println!("updating right");
+                self.0 = d.list;
+            }
+        }
+    }
+
+    fn data_len(&self) -> usize {
+        self.0.len()
+    }
+}
+
+#[derive(Clone, Data)]
+struct ListEntry<T: Data>{
+    list: Vector<T>,
+    cached_item: T,
+    index: usize
+}
+
+impl<T: Data> ListEntry<T> {
+
+    pub fn value(&self) -> &T {
+        &self.cached_item
+    }
+
+    pub fn is_first(&self) -> bool {
+        self.index == 0
+    }
+
+    pub fn is_last(&self) -> bool  {
+        self.index == self.list.len() - 1
+    }
+
+    pub fn value_mut(&mut self) -> &mut T {
+        println!("invalidate cache");
+        &mut self.list[self.index]
+    }
+
+    pub fn delete(&mut self) {
+        println!("invalidate item");
+        self.list.remove(self.index);
+    }
+
+    pub fn swap(&mut self, new_index: usize){
+        println!("invalidate cache");
+        self.list.swap(self.index, new_index);
+    }
+
+    pub fn move_relative(&mut self, offset: i32) {
+        if offset.is_negative(){
+            self.swap(self.index.saturating_sub(offset.abs() as usize));
+        } else {
+            self.swap(self.index.saturating_add(offset.abs() as usize));
+        }
+
+    }
+
+}
 
 const NAMES: &[&str] = &[
     "Allegra",
