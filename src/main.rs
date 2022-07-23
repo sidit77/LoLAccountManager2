@@ -3,7 +3,7 @@
 mod gui;
 
 use druid::{AppLauncher, Color, LocalizedString, theme, WindowDesc};
-use crate::gui::{AppData, AppState, Settings, ui};
+use crate::gui::{Account, MainState, AppState, Database, Settings, ui};
 
 pub fn main() {
     let window = WindowDesc::new(ui())
@@ -22,13 +22,21 @@ pub fn main() {
             env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0);
 
         })
-        .launch(AppState::Main(AppData {
+        .launch(AppState::Main(MainState {
             settings: Settings { close_on_login: false },
             filter: "".to_string(),
             edit_mode: false,
-            accounts: NAMES.iter().map(|s| s.to_string()).collect()
+            database: get_test_database()
         }))
         .expect("launch failed");
+}
+
+pub fn get_test_database() -> Database {
+    Database {
+        accounts: NAMES.iter().map(|s| Account {
+            name: s.to_string()
+        }).collect()
+    }
 }
 
 const NAMES: &[&str] = &[

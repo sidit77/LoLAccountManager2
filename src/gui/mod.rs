@@ -1,6 +1,8 @@
 mod widgets;
 mod util;
 mod settings;
+mod main;
+mod edit;
 
 use druid::{Data, Event, Selector, TextAlignment, Widget, WidgetExt, Lens, Color, lens, EventCtx, Env, LensExt};
 use druid::im::Vector;
@@ -21,18 +23,28 @@ pub struct Settings {
 }
 
 #[derive(Clone, Data, Lens)]
-pub struct AppData {
+pub struct Account {
+    pub name: String
+}
+
+#[derive(Clone, Data, Lens)]
+pub struct Database {
+    pub accounts: Vector<Account>
+}
+
+#[derive(Clone, Data, Lens)]
+pub struct MainState {
     pub settings: Settings,
     pub filter: String,
     pub edit_mode: bool,
-    pub accounts: Vector<String>
+    pub database: Database
 }
 
 #[derive(Clone, Data, Matcher)]
 #[matcher(matcher_name = App)]
 pub enum AppState {
     Settings(SettingsState),
-    Main(AppData)
+    Main(MainState)
 }
 
 pub fn ui() -> impl Widget<AppState> {
@@ -62,19 +74,19 @@ impl Controller<AppState, App> for AppController {
     }
 }
 
-fn build_widget() -> impl Widget<AppData> {
-    Either::new(|data: &AppData, _ | !data.edit_mode,
+fn build_widget() -> impl Widget<MainState> {
+    Either::new(|data: &MainState, _ | !data.edit_mode,
                 main_layout(
                     TextBox::new()
                         .with_text_alignment(TextAlignment::Center)
                         .with_placeholder("Search...")
-                        .lens(AppData::filter)
+                        .lens(MainState::filter)
                         .expand_width(),
                     IconButton::new(&icons::EDIT)
                         .on_click(|_, mode: &mut bool ,_| *mode = true)
-                        .lens(AppData::edit_mode),
+                        .lens(MainState::edit_mode),
                     IconButton::new(&icons::PREFERENCES)
-                        .on_click(|ctx,state: &mut AppData,_|
+                        .on_click(|ctx, state: &mut MainState, _|
                             ctx.submit_command(OPEN_SETTINGS.with(SettingsState {
                                 previous: state.clone(),
                                 settings: state.settings.clone()
@@ -87,21 +99,21 @@ fn build_widget() -> impl Widget<AppData> {
                     Button::new("Y")
                         .on_click(|_, mode: &mut bool ,_| *mode = false)
                         .expand()
-                        .lens(AppData::edit_mode),
+                        .lens(MainState::edit_mode),
                     Button::new("N")
                         .on_click(|_, mode: &mut bool ,_| *mode = false)
                         .expand()
-                        .lens(AppData::edit_mode),
+                        .lens(MainState::edit_mode),
                     edit_account_view()
                 )
     )
 }
 
 
-fn main_layout(h1: impl Widget<AppData> + 'static,
-               h2: impl Widget<AppData> + 'static,
-               h3: impl Widget<AppData> + 'static,
-               body: impl Widget<AppData> + 'static) -> impl Widget<AppData> {
+fn main_layout(h1: impl Widget<MainState> + 'static,
+               h2: impl Widget<MainState> + 'static,
+               h3: impl Widget<MainState> + 'static,
+               body: impl Widget<MainState> + 'static) -> impl Widget<MainState> {
     Flex::column()
         .with_child(Flex::row()
             .with_flex_child(h1
@@ -132,11 +144,11 @@ fn main_layout(h1: impl Widget<AppData> + 'static,
         .padding(5.0)
 }
 
-fn standard_account_view() -> impl Widget<AppData> {
+fn standard_account_view() -> impl Widget<MainState> {
     Scroll::new(List::new(|| {
-        Button::new(|item: &String, _: &_| format!("{}", item))
-            .on_click(|_ctx, acc: &mut String, _env| {
-                println!("Login: {}", acc);
+        Button::new(|item: &Account, _: &_| format!("{}", item.name))
+            .on_click(|_ctx, acc: &mut Account, _env| {
+                println!("Login: {}", acc.name);
             })
             .padding(3.0)
             .expand()
@@ -144,40 +156,41 @@ fn standard_account_view() -> impl Widget<AppData> {
     }))
         .vertical()
         .lens(lens::Identity.map(
-            |d: &AppData| d.accounts
+            |d: &MainState| d.database.accounts
                 .iter()
-                .filter(|s|s
+                .filter(|acc|acc
+                    .name
                     .to_lowercase()
                     .contains(&d.filter.to_lowercase()))
                 .cloned()
                 .collect(),
-            |_, _: Vector<String>| {},
+            |_, _: Vector<Account>| {},
         ))
 }
 
-fn edit_account_view() -> impl Widget<AppData> {
+fn edit_account_view() -> impl Widget<MainState> {
     Scroll::new(List::new(|| {
         Flex::row()
-            .with_flex_child(Label::new(|entry: &ListEntry<String>, _: &_| format!("{}", entry.value()))
+            .with_flex_child(Label::new(|entry: &ListEntry<Account>, _: &_| format!("{}", entry.value().name))
                                  .center()
                                  .expand()
                                  .padding(3.0), 1.0)
             .with_spacer(3.0)
             .with_child(Button::new("Edit")
-                .on_click(|_,entry: &mut ListEntry<String>,_| entry.value_mut().push('x'))
+                .on_click(|_,entry: &mut ListEntry<Account>,_| entry.value_mut().name.push('x'))
                 .expand_height()
                 .padding(3.0))
             .with_child(Flex::column()
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
                 .with_flex_child(Button::new("Up")
-                                     .disabled_if(|entry: &ListEntry<String>, _: &_| entry.is_first())
-                                     .on_click(|_, entry: &mut ListEntry<String>, _| entry.move_relative(-1)), 1.0)
+                                     .disabled_if(|entry: &ListEntry<Account>, _: &_| entry.is_first())
+                                     .on_click(|_, entry: &mut ListEntry<Account>, _| entry.move_relative(-1)), 1.0)
                 .with_flex_child(Button::new("Down")
-                                     .disabled_if(|entry: &ListEntry<String>, _: &_| entry.is_last())
-                                     .on_click(|_, entry: &mut ListEntry<String>, _| entry.move_relative(1)), 1.0)
+                                     .disabled_if(|entry: &ListEntry<Account>, _: &_| entry.is_last())
+                                     .on_click(|_, entry: &mut ListEntry<Account>, _| entry.move_relative(1)), 1.0)
                 .expand_height())
             .with_child(Button::new("Delete")
-                .on_click(|_, entry: &mut ListEntry<String>, _| entry.delete())
+                .on_click(|_, entry: &mut ListEntry<Account>, _| entry.delete())
                 .expand_height()
                 .padding(3.0))
             .expand_width()
@@ -187,13 +200,13 @@ fn edit_account_view() -> impl Widget<AppData> {
     }).with_spacing(3.0))
         .vertical()
         .lens(lens::Identity.map(
-            |d: &AppData| {
+            |d: &MainState| {
                 //println!("get");
-                VectorWrapper(d.accounts.clone())
+                VectorWrapper(d.database.accounts.clone())
             },
-            |d: &mut AppData, x: VectorWrapper<String>| {
+            |d: &mut MainState, x: VectorWrapper<Account>| {
                 //println!("put");
-                d.accounts = x.0
+                d.database.accounts = x.0
             },
         ))
 }

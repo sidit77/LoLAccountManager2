@@ -1,12 +1,12 @@
 use druid::{Selector, Widget, WidgetExt, Data, Lens};
 use druid::widget::{Button, Checkbox, Flex};
-use crate::{AppData, Settings};
+use crate::{MainState, Settings};
 
 pub const SETTINGS_SAVE: Selector<SettingsState> = Selector::new("lol_account_manager_v2.settings.back");
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {
-    pub previous: AppData,
+    pub previous: MainState,
     pub settings: Settings
 }
 
