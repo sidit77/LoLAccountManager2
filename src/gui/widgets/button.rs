@@ -1,7 +1,7 @@
 use druid::widget::prelude::*;
 use druid::widget::{Click, ControllerHost};
 use druid::{theme, Affine, Data, LinearGradient, UnitPoint};
-use crate::Icon;
+use crate::gui::widgets::Icon;
 
 pub struct IconButton {
     icon: Icon,
