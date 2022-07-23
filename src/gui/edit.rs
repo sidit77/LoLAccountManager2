@@ -3,12 +3,14 @@ use druid::{Widget, Lens, LensExt, Data, WidgetExt, Color, lens, Selector, Event
 use druid::widget::{Button, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
 use crate::{Account, Database, MainState};
 use crate::gui::account::AccountState;
-use crate::gui::util::{ListEntry, VectorWrapper};
+use crate::gui::util::{Indexed, IndexWrapper};
 
 pub const OPEN_ACCOUNT: Selector<AccountState> = Selector::new("lol_account_manager_v2.edit.account");
 pub const CLOSE_EDITOR: Selector<(EditState, bool)> = Selector::new("lol_account_manager_v2.edit.close");
 
 const EDIT_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.edit");
+const DELETE_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.delete");
+const MOVE_ACCOUNT: Selector<(usize, i32)> = Selector::new("lol_account_manager_v2.edit.move");
 
 #[derive(Clone, Data, Lens)]
 pub struct EditState {
@@ -53,29 +55,32 @@ fn account_view() -> impl Widget<EditState> {
     Scroll::new(List::new(|| {
         Flex::row()
             .with_flex_child(
-                Label::new(|entry: &ListEntry<Account>, _: &_| format!("{}", entry.value().name))
+                Label::new(|entry: &Indexed<Account>, _: &_| format!("{}", entry.name))
                     .center()
                     .expand()
                     .padding(3.0), 1.0)
             .with_spacer(3.0)
             .with_child(Button::new("Edit")
-                .on_click(|ctx,entry: &mut ListEntry<Account>,_|
-                    ctx.submit_command(EDIT_ACCOUNT.with(entry.index)))
+                .on_click(|ctx,entry: &mut Indexed<Account>,_|
+                    ctx.submit_command(EDIT_ACCOUNT.with(entry.index())))
                 .expand_height()
                 .padding(3.0))
             .with_child(Flex::column()
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
                 .with_flex_child(
                     Button::new("Up")
-                        .disabled_if(|entry: &ListEntry<Account>, _: &_| entry.is_first())
-                        .on_click(|_, entry: &mut ListEntry<Account>, _| entry.move_relative(-1)), 1.0)
+                        .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_first())
+                        .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                                      ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), -1)))), 1.0)
                 .with_flex_child(
                     Button::new("Down")
-                        .disabled_if(|entry: &ListEntry<Account>, _: &_| entry.is_last())
-                        .on_click(|_, entry: &mut ListEntry<Account>, _| entry.move_relative(1)), 1.0)
+                        .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_last())
+                        .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                                      ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0)
                 .expand_height())
             .with_child(Button::new("Delete")
-                .on_click(|_, entry: &mut ListEntry<Account>, _| entry.delete())
+                .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                    ctx.submit_command(DELETE_ACCOUNT.with(entry.index())))
                 .expand_height()
                 .padding(3.0))
             .expand_width()
@@ -86,14 +91,8 @@ fn account_view() -> impl Widget<EditState> {
         .with_spacing(3.0))
         .vertical()
         .lens(lens::Identity.map(
-            |d: &EditState| {
-                //println!("get");
-                VectorWrapper(d.database.accounts.clone())
-            },
-            |d: &mut EditState, x: VectorWrapper<Account>| {
-                //println!("put");
-                d.database.accounts = x.0
-            },
+            |d: &EditState| IndexWrapper::from(d.database.accounts.clone()),
+            |d: &mut EditState, x: IndexWrapper<Account>| d.database.accounts = x.into(),
         ))
         .controller(ListController)
 }
@@ -103,9 +102,21 @@ impl<W: Widget<EditState>> Controller<EditState, W> for ListController {
     fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut EditState, env: &Env) {
         match event {
             Event::Command(cmd) if cmd.is(EDIT_ACCOUNT) => {
-                let index = cmd.get_unchecked(EDIT_ACCOUNT);
-                let account = data.database.accounts.index(*index).clone();
-                ctx.submit_command(OPEN_ACCOUNT.with(AccountState::existing(data.clone(), *index, account)));
+                let index = *cmd.get_unchecked(EDIT_ACCOUNT);
+                let account = data.database.accounts.index(index).clone();
+                ctx.submit_command(OPEN_ACCOUNT.with(AccountState::existing(data.clone(), index, account)));
+            },
+            Event::Command(cmd) if cmd.is(DELETE_ACCOUNT) => {
+                let index = *cmd.get_unchecked(DELETE_ACCOUNT);
+                data.database.accounts.remove(index);
+            },
+            Event::Command(cmd) if cmd.is(MOVE_ACCOUNT) => {
+                let (index, offset) = *cmd.get_unchecked(MOVE_ACCOUNT);
+                let target = match offset.is_negative() {
+                    true => index.saturating_sub(offset.abs() as usize),
+                    false => index.saturating_add(offset.abs() as usize),
+                };
+                data.database.accounts.swap(index, target);
             }
             _ => {}
         }

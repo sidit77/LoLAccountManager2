@@ -1,3 +1,3 @@
-mod vector;
+mod indexed;
 
-pub use vector::{VectorWrapper, ListEntry};
+pub use indexed::{IndexWrapper, Indexed};
