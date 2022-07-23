@@ -1,4 +1,4 @@
-use druid::{Selector, Data, Lens, Widget, WidgetExt, Color, TextAlignment, lens, LensExt};
+use druid::{Selector, Data, Lens, Widget, WidgetExt, Color, TextAlignment, lens, LensExt, theme};
 use druid::im::Vector;
 use druid::widget::{Button, Flex, List, MainAxisAlignment, Scroll, TextBox};
 use crate::{Account, Database, Settings};
@@ -22,6 +22,7 @@ pub fn build_main_ui() -> impl Widget<MainState> {
                 .with_text_alignment(TextAlignment::Center)
                 .with_placeholder("Search...")
                 .lens(MainState::filter)
+                .env_scope(|env,_| env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0))
                 .expand_width()
                 .center()
                 .expand()

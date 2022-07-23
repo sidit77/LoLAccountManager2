@@ -62,6 +62,7 @@ impl Controller<AppState, App> for AppController {
                     previous: main_state.clone(),
                     settings: main_state.settings.clone()
                 });
+                ctx.children_changed()
             },
             Event::Command(cmd) if cmd.is(OPEN_EDITOR) => {
                 let main_state= cmd.get_unchecked(OPEN_EDITOR);
@@ -69,14 +70,14 @@ impl Controller<AppState, App> for AppController {
                     previous: main_state.clone(),
                     database: main_state.database.clone()
                 });
+                ctx.children_changed()
             },
             Event::Command(cmd) if cmd.is(SETTINGS_SAVE) => {
                 let settings_state= cmd.get_unchecked(SETTINGS_SAVE);
                 let mut main = settings_state.previous.clone();
                 main.settings = settings_state.settings.clone();
-                //? without this the searchbar becomes stuck
-                main.filter.clear();
                 *data = AppState::Main(main);
+                ctx.children_changed()
             },
             Event::Command(cmd) if cmd.is(CLOSE_EDITOR) => {
                 let (state, save) = cmd.get_unchecked(CLOSE_EDITOR);
@@ -84,13 +85,13 @@ impl Controller<AppState, App> for AppController {
                 if *save {
                     main.database = state.database.clone();
                 }
-                //? without this the searchbar becomes stuck
-                main.filter.clear();
                 *data = AppState::Main(main);
+                ctx.children_changed()
             },
             Event::Command(cmd) if cmd.is(OPEN_ACCOUNT) => {
                 let state= cmd.get_unchecked(OPEN_ACCOUNT);
                 *data = AppState::Account(state.clone());
+                ctx.children_changed()
             },
             Event::Command(cmd) if cmd.is(CLOSE_ACCOUNT) => {
                 let (state, save)= cmd.get_unchecked(CLOSE_ACCOUNT);
@@ -102,6 +103,7 @@ impl Controller<AppState, App> for AppController {
                     };
                 }
                 *data = AppState::Editor(new);
+                ctx.children_changed()
             },
             _ => {}
         }

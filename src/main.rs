@@ -20,7 +20,7 @@ pub fn main() {
             env.set(theme::WINDOW_BACKGROUND_COLOR, Color::WHITE);
             env.set(theme::BACKGROUND_LIGHT, Color::WHITE);
             env.set(theme::CURSOR_COLOR, Color::BLACK);
-            env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0);
+            //env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0);
 
         })
         .launch(AppState::Main(MainState {
