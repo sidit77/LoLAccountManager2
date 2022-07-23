@@ -3,13 +3,14 @@
 mod gui;
 
 use druid::{AppLauncher, Color, LocalizedString, theme, WindowDesc};
-use crate::gui::{Account, MainState, AppState, Database, Settings, ui};
+use crate::gui::{Account, AppState, Database, MainState, Settings, ui};
 
 pub fn main() {
     let window = WindowDesc::new(ui())
         .window_size((400.0, 600.0))
         .title(LocalizedString::new("scroll-demo-window-title").with_placeholder("Scroll demo"));
     AppLauncher::with_window(window)
+        .log_to_console()
         .configure_env(|env, _| {
             env.set(theme::BUTTON_DARK, Color::AQUA);
             env.set(theme::BUTTON_LIGHT, Color::AQUA);
@@ -25,7 +26,6 @@ pub fn main() {
         .launch(AppState::Main(MainState {
             settings: Settings { close_on_login: false },
             filter: "".to_string(),
-            edit_mode: false,
             database: get_test_database()
         }))
         .expect("launch failed");

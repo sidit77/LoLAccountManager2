@@ -1,6 +1,7 @@
 use druid::{Selector, Widget, WidgetExt, Data, Lens};
 use druid::widget::{Button, Checkbox, Flex};
-use crate::{MainState, Settings};
+use crate::Settings;
+use crate::gui::main::MainState;
 
 pub const SETTINGS_SAVE: Selector<SettingsState> = Selector::new("lol_account_manager_v2.settings.back");
 
