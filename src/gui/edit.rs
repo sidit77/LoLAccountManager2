@@ -1,10 +1,14 @@
-use druid::{Widget, Lens, LensExt, Data, WidgetExt, Color, lens, Selector};
-use druid::widget::{Button, Flex, Label, List, MainAxisAlignment, Scroll};
+use std::ops::Index;
+use druid::{Widget, Lens, LensExt, Data, WidgetExt, Color, lens, Selector, EventCtx, Event, Env};
+use druid::widget::{Button, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
 use crate::{Account, Database, MainState};
+use crate::gui::account::AccountState;
 use crate::gui::util::{ListEntry, VectorWrapper};
 
-pub const CLOSE_EDITOR_SAVE: Selector<EditState> = Selector::new("lol_account_manager_v2.edit.save");
-pub const CLOSE_EDITOR_DISCARD: Selector<EditState> = Selector::new("lol_account_manager_v2.edit.discard");
+pub const OPEN_ACCOUNT: Selector<AccountState> = Selector::new("lol_account_manager_v2.edit.account");
+pub const CLOSE_EDITOR: Selector<(EditState, bool)> = Selector::new("lol_account_manager_v2.edit.close");
+
+const EDIT_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.edit");
 
 #[derive(Clone, Data, Lens)]
 pub struct EditState {
@@ -19,17 +23,17 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
             .with_flex_child(
                 Button::new("New")
                     .on_click(|ctx, state: &mut EditState ,_|
-                        ctx.submit_command(CLOSE_EDITOR_SAVE.with(state.clone()))).expand(), 1.0)
+                        ctx.submit_command(OPEN_ACCOUNT.with(AccountState::new(state.clone())))).expand(), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
                 Button::new("Save")
                     .on_click(|ctx, state: &mut EditState ,_|
-                        ctx.submit_command(CLOSE_EDITOR_SAVE.with(state.clone()))).expand(), 1.0)
+                        ctx.submit_command(CLOSE_EDITOR.with((state.clone(), true)))).expand(), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
                 Button::new("Discard")
                     .on_click(|ctx, state: &mut EditState ,_|
-                        ctx.submit_command(CLOSE_EDITOR_DISCARD.with(state.clone()))).expand(), 1.0) //Button::new("O").expand()
+                        ctx.submit_command(CLOSE_EDITOR.with((state.clone(), false)))).expand(), 1.0) //Button::new("O").expand()
             .padding(3.0)
             .border(Color::GRAY, 2.0)
             .rounded(5.0)
@@ -55,7 +59,8 @@ fn account_view() -> impl Widget<EditState> {
                     .padding(3.0), 1.0)
             .with_spacer(3.0)
             .with_child(Button::new("Edit")
-                .on_click(|_,entry: &mut ListEntry<Account>,_| entry.value_mut().name.push('x'))
+                .on_click(|ctx,entry: &mut ListEntry<Account>,_|
+                    ctx.submit_command(EDIT_ACCOUNT.with(entry.index)))
                 .expand_height()
                 .padding(3.0))
             .with_child(Flex::column()
@@ -77,7 +82,8 @@ fn account_view() -> impl Widget<EditState> {
             .fix_height(60.0)
             .border(Color::GRAY, 2.0)
             .rounded(5.0)
-    }).with_spacing(3.0))
+    })
+        .with_spacing(3.0))
         .vertical()
         .lens(lens::Identity.map(
             |d: &EditState| {
@@ -89,4 +95,20 @@ fn account_view() -> impl Widget<EditState> {
                 d.database.accounts = x.0
             },
         ))
+        .controller(ListController)
+}
+
+struct ListController;
+impl<W: Widget<EditState>> Controller<EditState, W> for ListController {
+    fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut EditState, env: &Env) {
+        match event {
+            Event::Command(cmd) if cmd.is(EDIT_ACCOUNT) => {
+                let index = cmd.get_unchecked(EDIT_ACCOUNT);
+                let account = data.database.accounts.index(*index).clone();
+                ctx.submit_command(OPEN_ACCOUNT.with(AccountState::existing(data.clone(), *index, account)));
+            }
+            _ => {}
+        }
+        child.event(ctx, event, data, env)
+    }
 }

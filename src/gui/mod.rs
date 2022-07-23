@@ -3,16 +3,19 @@ mod util;
 mod settings;
 mod main;
 mod edit;
+mod account;
 
+use std::ops::IndexMut;
 use druid::{Data, Event, Widget, WidgetExt, Lens, EventCtx, Env};
 use druid::im::Vector;
 use druid::widget::Controller;
 use druid_enums::Matcher;
 use crate::gui::main::{build_main_ui, OPEN_EDITOR, OPEN_SETTINGS};
 use crate::gui::settings::{build_settings_ui, SETTINGS_SAVE, SettingsState};
-use crate::gui::edit::{build_edit_ui, CLOSE_EDITOR_DISCARD, CLOSE_EDITOR_SAVE, EditState};
+use crate::gui::edit::{build_edit_ui, CLOSE_EDITOR, OPEN_ACCOUNT, EditState};
 
 pub use main::MainState;
+use crate::gui::account::{AccountState, build_account_ui, CLOSE_ACCOUNT, EditMode};
 
 
 #[derive(Clone, Data, Lens)]
@@ -20,7 +23,7 @@ pub struct Settings {
     pub close_on_login: bool
 }
 
-#[derive(Clone, Data, Lens)]
+#[derive(Clone, Default, Data, Lens)]
 pub struct Account {
     pub name: String
 }
@@ -36,7 +39,8 @@ pub struct Database {
 pub enum AppState {
     Settings(SettingsState),
     Main(MainState),
-    Editor(EditState)
+    Editor(EditState),
+    Account(AccountState)
 }
 
 pub fn ui() -> impl Widget<AppState> {
@@ -44,6 +48,7 @@ pub fn ui() -> impl Widget<AppState> {
         .main(build_main_ui())
         .settings(build_settings_ui())
         .editor(build_edit_ui())
+        .account(build_account_ui())
         .controller(AppController)
 }
 
@@ -73,20 +78,30 @@ impl Controller<AppState, App> for AppController {
                 main.filter.clear();
                 *data = AppState::Main(main);
             },
-            Event::Command(cmd) if cmd.is(CLOSE_EDITOR_SAVE) => {
-                let edit_state= cmd.get_unchecked(CLOSE_EDITOR_SAVE);
-                let mut main = edit_state.previous.clone();
-                main.database = edit_state.database.clone();
+            Event::Command(cmd) if cmd.is(CLOSE_EDITOR) => {
+                let (state, save) = cmd.get_unchecked(CLOSE_EDITOR);
+                let mut main = state.previous.clone();
+                if *save {
+                    main.database = state.database.clone();
+                }
                 //? without this the searchbar becomes stuck
                 main.filter.clear();
                 *data = AppState::Main(main);
             },
-            Event::Command(cmd) if cmd.is(CLOSE_EDITOR_DISCARD) => {
-                let edit_state= cmd.get_unchecked(CLOSE_EDITOR_DISCARD);
-                let mut main = edit_state.previous.clone();
-                //? without this the searchbar becomes stuck
-                main.filter.clear();
-                *data = AppState::Main(main);
+            Event::Command(cmd) if cmd.is(OPEN_ACCOUNT) => {
+                let state= cmd.get_unchecked(OPEN_ACCOUNT);
+                *data = AppState::Account(state.clone());
+            },
+            Event::Command(cmd) if cmd.is(CLOSE_ACCOUNT) => {
+                let (state, save)= cmd.get_unchecked(CLOSE_ACCOUNT);
+                let mut new = state.previous.clone();
+                if *save {
+                    match state.mode {
+                        EditMode::New => new.database.accounts.push_back(state.account.clone()),
+                        EditMode::Existing(index) => *new.database.accounts.index_mut(index) = state.account.clone()
+                    };
+                }
+                *data = AppState::Editor(new);
             },
             _ => {}
         }
