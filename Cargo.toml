@@ -10,3 +10,5 @@ lto = true
 
 [dependencies]
 druid = { git = "https://github.com/linebender/druid.git", features = ["im"]}
+druid-enums = { git = "https://github.com/finnerale/druid-enums" }
+log = "0.4.11"

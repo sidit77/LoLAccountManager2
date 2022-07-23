@@ -252,6 +252,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "druid-enums"
+version = "0.1.0"
+source = "git+https://github.com/finnerale/druid-enums#ed307acce2207ad0997985ca5c18ff827be1f9d3"
+dependencies = [
+ "heck",
+ "log",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "druid-shell"
 version = "0.7.0"
 source = "git+https://github.com/linebender/druid.git#89562de2b02f1be6ab9d62138ef593294ae0a186"
@@ -734,6 +746,8 @@ name = "lol_account_manager_v2"
 version = "0.1.0"
 dependencies = [
  "druid",
+ "druid-enums",
+ "log",
 ]
 
 [[package]]

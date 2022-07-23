@@ -4,21 +4,44 @@ mod icons;
 mod button;
 
 use druid::widget::prelude::*;
-use druid::widget::{Button, Either, Flex, Label, List, ListIter, MainAxisAlignment, Scroll, TextBox};
-use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt, TextAlignment};
+use druid::widget::{Button, Checkbox, Controller, Either, Flex, Label, List, ListIter, MainAxisAlignment, Scroll, TextBox};
+use druid::{AppLauncher, Color, LocalizedString, theme, WidgetExt, WindowDesc, Lens, lens, LensExt, TextAlignment, Selector};
 use druid::im::{Vector};
+use druid_enums::Matcher;
 use crate::button::IconButton;
 use crate::icons::Icon;
 
+const SETTINGS_SAVE: Selector<SettingsState> = Selector::new("lol_account_manager_v2.settings.back");
+const OPEN_SETTINGS: Selector<SettingsState> = Selector::new("lol_account_manager_v2.main.settings");
+
+#[derive(Clone, Data, Lens)]
+struct Settings {
+    close_on_login: bool
+}
+
 #[derive(Clone, Data, Lens)]
 struct AppData {
+    settings: Settings,
     filter: String,
     edit_mode: bool,
     accounts: Vector<String>
 }
 
+#[derive(Clone, Data, Lens)]
+struct SettingsState {
+    previous: AppData,
+    settings: Settings
+}
+
+#[derive(Clone, Data, Matcher)]
+#[matcher(matcher_name = App)]
+enum AppState {
+    Settings(SettingsState),
+    Main(AppData)
+}
+
 pub fn main() {
-    let window = WindowDesc::new(build_widget())
+    let window = WindowDesc::new(ui())
         .window_size((400.0, 600.0))
         .title(LocalizedString::new("scroll-demo-window-title").with_placeholder("Scroll demo"));
     AppLauncher::with_window(window)
@@ -34,12 +57,52 @@ pub fn main() {
             env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0);
 
         })
-        .launch(AppData {
+        .launch(AppState::Main(AppData {
+            settings: Settings { close_on_login: false },
             filter: "".to_string(),
             edit_mode: false,
             accounts: NAMES.iter().map(|s| s.to_string()).collect()
-        })
+        }))
         .expect("launch failed");
+}
+
+fn ui() -> impl Widget<AppState> {
+    App::new()
+        .main(build_widget())
+        .settings(build_settings())
+        .controller(AppController)
+}
+
+struct AppController;
+impl Controller<AppState, App> for AppController {
+    fn event(&mut self, child: &mut App, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env) {
+        match event {
+            Event::Command(cmd) if cmd.is(OPEN_SETTINGS) => {
+                let settings_state= cmd.get_unchecked(OPEN_SETTINGS);
+                *data = AppState::Settings(settings_state.clone());
+            },
+            Event::Command(cmd) if cmd.is(SETTINGS_SAVE) => {
+                let settings_state= cmd.get_unchecked(SETTINGS_SAVE);
+                let mut main = settings_state.previous.clone();
+                main.settings = settings_state.settings.clone();
+                *data = AppState::Main(main);
+            }
+            _ => {}
+        }
+        child.event(ctx, event, data, env)
+    }
+}
+
+fn build_settings() -> impl Widget<SettingsState> {
+    Flex::column()
+        .with_child(Flex::column()
+            .with_child(Checkbox::new("close on login")
+                .lens(Settings::close_on_login))
+            .lens(SettingsState::settings))
+        .with_child(Button::new("back")
+            .on_click(|ctx, state: &mut SettingsState, _| ctx.submit_command(SETTINGS_SAVE.with(state.clone()))))
+        .center()
+
 }
 
 fn build_widget() -> impl Widget<AppData> {
@@ -54,7 +117,11 @@ fn build_widget() -> impl Widget<AppData> {
                 .on_click(|_, mode: &mut bool ,_| *mode = true)
                 .lens(AppData::edit_mode),
             IconButton::new(&icons::PREFERENCES)
-                .on_click(|_,_,_| println!("settings")),
+                .on_click(|ctx,state: &mut AppData,_|
+                    ctx.submit_command(OPEN_SETTINGS.with(SettingsState {
+                        previous: state.clone(),
+                        settings: state.settings.clone()
+                    }))),
             standard_account_view()
         ),
         main_layout(
