@@ -59,7 +59,8 @@ pub fn build_main_ui() -> impl Widget<MainState> {
 }
 
 fn account_view() -> impl Widget<MainState> {
-    Scroll::new(List::new(item_ui))
+    Scroll::new(List::new(item_ui)
+        .with_spacing(3.0))
         .vertical()
         .lens(lens::Identity.map(
             |d: &MainState| d.database.accounts
@@ -79,7 +80,6 @@ fn item_ui() -> impl Widget<Account> {
         .on_click(|_ctx, acc: &mut Account, _env| {
             println!("Login: {}", acc.name);
         })
-        .padding(3.0)
         .expand()
         .height(50.0)
 }

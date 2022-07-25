@@ -1,11 +1,15 @@
 use std::ops::Index;
 use druid::{Widget, Lens, LensExt, Data, WidgetExt, lens, Selector, EventCtx, Event, Env};
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Container, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
+use druid::widget::{Container, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
+use druid_material_icons::IconPaths;
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::DELETE;
 use druid_material_icons::normal::navigation::ARROW_DROP_UP;
 use druid_material_icons::normal::navigation::ARROW_DROP_DOWN;
+use druid_material_icons::normal::content::ADD;
+use druid_material_icons::normal::content::SAVE;
+use druid_material_icons::normal::navigation::CLOSE;
 use crate::{Account, Database, MainState};
 use crate::gui::account::AccountState;
 use crate::gui::util::{Indexed, IndexWrapper};
@@ -29,17 +33,17 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
         .with_child(Flex::row()
             .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
             .with_flex_child(
-                Button::new("New")
+                icon_text_button(ADD, "New")
                     .on_click(|ctx, state: &mut EditState ,_|
                         ctx.submit_command(OPEN_ACCOUNT.with(AccountState::new(state.clone())))).expand(), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
-                Button::new("Save")
+                icon_text_button(SAVE, "Save")
                     .on_click(|ctx, state: &mut EditState ,_|
                         ctx.submit_command(CLOSE_EDITOR.with((state.clone(), true)))).expand(), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
-                Button::new("Discard")
+                icon_text_button(CLOSE, "Discard")
                     .on_click(|ctx, state: &mut EditState ,_|
                         ctx.submit_command(CLOSE_EDITOR.with((state.clone(), false)))).expand(), 1.0) //Button::new("O").expand()
             .expand_width()
@@ -52,6 +56,16 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
                 .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
                 .rounded(TEXTBOX_BORDER_RADIUS), 1.0)
         .padding(5.0)
+}
+
+fn icon_text_button<T: Data>(icon: IconPaths, text: &str) -> impl Widget<T> {
+    WidgetButton::new(
+        Flex::row()
+            .with_child(Icon::new(icon))
+            .with_spacer(3.0)
+            .with_child(Label::new(text))
+            .center()
+    )
 }
 
 fn account_view() -> impl Widget<EditState> {
