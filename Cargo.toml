@@ -9,7 +9,13 @@ edition = "2021"
 lto = true
 
 [dependencies]
-druid = { git = "https://github.com/linebender/druid.git", features = ["im"]}
+druid = { git = "https://github.com/sidit77/druid.git", features = ["im", "raw-win-handle"]}
 druid-enums = { git = "https://github.com/finnerale/druid-enums" }
 log = "0.4.17"
 druid-material-icons = "0.1.0"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["windef", "winerror"] }
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"

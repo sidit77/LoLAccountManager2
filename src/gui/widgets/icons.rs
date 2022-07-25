@@ -35,6 +35,7 @@ impl<T: Data> Widget<T> for Icon {
         // no events
     }
     fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, _data: &T, _env: &Env) {
+        #[allow(clippy::single_match)]
         match event {
             LifeCycle::DisabledChanged(_) => {
                 ctx.request_layout();
