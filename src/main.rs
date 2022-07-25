@@ -2,8 +2,8 @@
 
 mod gui;
 
-use druid::{AppLauncher, Color, LocalizedString, theme, WindowDesc};
-use crate::gui::{Account, AppState, Database, MainState, Settings, ui};
+use druid::{AppLauncher, LocalizedString, WindowDesc};
+use crate::gui::{Account, AppState, Database, MainState, Settings, Theme, ui};
 
 pub fn main() {
     let window = WindowDesc::new(ui())
@@ -11,20 +11,8 @@ pub fn main() {
         .title(LocalizedString::new("scroll-demo-window-title").with_placeholder("Scroll demo"));
     AppLauncher::with_window(window)
         .log_to_console()
-        .configure_env(|env, _| {
-            env.set(theme::BUTTON_DARK, Color::AQUA);
-            env.set(theme::BUTTON_LIGHT, Color::AQUA);
-            env.set(theme::DISABLED_BUTTON_DARK, Color::WHITE);
-            env.set(theme::DISABLED_BUTTON_LIGHT, Color::WHITE);
-            env.set(theme::TEXT_COLOR, Color::BLACK);
-            env.set(theme::WINDOW_BACKGROUND_COLOR, Color::WHITE);
-            env.set(theme::BACKGROUND_LIGHT, Color::WHITE);
-            env.set(theme::CURSOR_COLOR, Color::BLACK);
-            //env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0);
-
-        })
         .launch(AppState::Main(MainState {
-            settings: Settings { close_on_login: false },
+            settings: Settings { close_on_login: false, theme: Theme::Light },
             filter: "".to_string(),
             database: get_test_database()
         }))

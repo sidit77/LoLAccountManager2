@@ -4,23 +4,28 @@ mod settings;
 mod main;
 mod edit;
 mod account;
+mod theme;
 
 use std::ops::IndexMut;
 use druid::{Data, Event, Widget, WidgetExt, Lens, EventCtx, Env};
 use druid::im::Vector;
+use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
 use druid_enums::Matcher;
 use crate::gui::main::{build_main_ui, OPEN_EDITOR, OPEN_SETTINGS};
 use crate::gui::settings::{build_settings_ui, SETTINGS_SAVE, SettingsState};
 use crate::gui::edit::{build_edit_ui, CLOSE_EDITOR, OPEN_ACCOUNT, EditState};
+use crate::gui::account::{AccountState, build_account_ui, CLOSE_ACCOUNT, EditMode};
+
 
 pub use main::MainState;
-use crate::gui::account::{AccountState, build_account_ui, CLOSE_ACCOUNT, EditMode};
+pub use theme::{Theme};
 
 
 #[derive(Clone, Data, Lens)]
 pub struct Settings {
-    pub close_on_login: bool
+    pub close_on_login: bool,
+    pub theme: Theme
 }
 
 #[derive(Clone, Default, Data, Lens)]
@@ -43,6 +48,17 @@ pub enum AppState {
     Account(AccountState)
 }
 
+impl AppState {
+    fn current_theme(&self) -> Theme {
+        match self {
+            AppState::Settings(state) => state.settings.theme,
+            AppState::Main(state) => state.settings.theme,
+            AppState::Editor(state) => state.previous.settings.theme,
+            AppState::Account(state) => state.previous.previous.settings.theme
+        }
+    }
+}
+
 pub fn ui() -> impl Widget<AppState> {
     App::new()
         .main(build_main_ui())
@@ -50,6 +66,8 @@ pub fn ui() -> impl Widget<AppState> {
         .editor(build_edit_ui())
         .account(build_account_ui())
         .controller(AppController)
+        .background(BACKGROUND_DARK)
+        .env_scope(|env,state: &AppState| state.current_theme().setup(env))
 }
 
 struct AppController;

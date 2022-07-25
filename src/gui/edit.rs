@@ -1,5 +1,6 @@
 use std::ops::Index;
-use druid::{Widget, Lens, LensExt, Data, WidgetExt, Color, lens, Selector, EventCtx, Event, Env};
+use druid::{Widget, Lens, LensExt, Data, WidgetExt, lens, Selector, EventCtx, Event, Env};
+use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
 use crate::{Account, Database, MainState};
 use crate::gui::account::AccountState;
@@ -36,9 +37,6 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
                 Button::new("Discard")
                     .on_click(|ctx, state: &mut EditState ,_|
                         ctx.submit_command(CLOSE_EDITOR.with((state.clone(), false)))).expand(), 1.0) //Button::new("O").expand()
-            .padding(3.0)
-            .border(Color::GRAY, 2.0)
-            .rounded(5.0)
             .expand_width()
             .fix_height(50.0))
         .with_spacer(3.0)
@@ -46,48 +44,13 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
             account_view()
                 .expand()
                 .padding(3.0)
-                .border(Color::GRAY, 2.0)
-                .rounded(5.0), 1.0)
+                .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
+                .rounded(TEXTBOX_BORDER_RADIUS), 1.0)
         .padding(5.0)
 }
 
 fn account_view() -> impl Widget<EditState> {
-    Scroll::new(List::new(|| {
-        Flex::row()
-            .with_flex_child(
-                Label::new(|entry: &Indexed<Account>, _: &_| format!("{}", entry.name))
-                    .center()
-                    .expand()
-                    .padding(3.0), 1.0)
-            .with_spacer(3.0)
-            .with_child(Button::new("Edit")
-                .on_click(|ctx,entry: &mut Indexed<Account>,_|
-                    ctx.submit_command(EDIT_ACCOUNT.with(entry.index())))
-                .expand_height()
-                .padding(3.0))
-            .with_child(Flex::column()
-                .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
-                .with_flex_child(
-                    Button::new("Up")
-                        .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_first())
-                        .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                                      ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), -1)))), 1.0)
-                .with_flex_child(
-                    Button::new("Down")
-                        .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_last())
-                        .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                                      ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0)
-                .expand_height())
-            .with_child(Button::new("Delete")
-                .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                    ctx.submit_command(DELETE_ACCOUNT.with(entry.index())))
-                .expand_height()
-                .padding(3.0))
-            .expand_width()
-            .fix_height(60.0)
-            .border(Color::GRAY, 2.0)
-            .rounded(5.0)
-    })
+    Scroll::new(List::new(item_ui)
         .with_spacing(3.0))
         .vertical()
         .lens(lens::Identity.map(
@@ -95,6 +58,44 @@ fn account_view() -> impl Widget<EditState> {
             |d: &mut EditState, x: IndexWrapper<Account>| d.database.accounts = x.into(),
         ))
         .controller(ListController)
+}
+
+fn item_ui() -> impl Widget<Indexed<Account>> {
+    Flex::row()
+        .with_flex_child(
+            Label::new(|entry: &Indexed<Account>, _: &_| format!("{}", entry.name))
+                .center()
+                .expand()
+                .padding(3.0), 1.0)
+        .with_spacer(3.0)
+        .with_child(Button::new("Edit")
+            .on_click(|ctx,entry: &mut Indexed<Account>,_|
+                ctx.submit_command(EDIT_ACCOUNT.with(entry.index())))
+            .expand_height()
+            .padding(3.0))
+        .with_child(Flex::column()
+            .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
+            .with_flex_child(
+                Button::new("Up")
+                    .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_first())
+                    .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                        ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), -1)))), 1.0)
+            .with_flex_child(
+                Button::new("Down")
+                    .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_last())
+                    .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                        ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0)
+            .expand_height())
+        .with_child(Button::new("Delete")
+            .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                ctx.submit_command(DELETE_ACCOUNT.with(entry.index())))
+            .expand_height()
+            .padding(3.0))
+        .expand_width()
+        .fix_height(60.0)
+        .background(BACKGROUND_LIGHT)
+        .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
+        .rounded(TEXTBOX_BORDER_RADIUS)
 }
 
 struct ListController;
