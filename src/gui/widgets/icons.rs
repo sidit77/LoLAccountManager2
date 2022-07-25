@@ -34,8 +34,13 @@ impl<T: Data> Widget<T> for Icon {
     fn event(&mut self, _ctx: &mut EventCtx, _event: &Event, _data: &mut T, _env: &Env) {
         // no events
     }
-    fn lifecycle(&mut self, _ctx: &mut LifeCycleCtx, _event: &LifeCycle, _data: &T, _env: &Env) {
-        // no lifecycle
+    fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, _data: &T, _env: &Env) {
+        match event {
+            LifeCycle::DisabledChanged(_) => {
+                ctx.request_layout();
+            }
+            _ => {}
+        }
     }
     fn update(&mut self, _ctx: &mut UpdateCtx, _old_data: &T, _data: &T, _env: &Env) {
         // no update
@@ -45,7 +50,10 @@ impl<T: Data> Widget<T> for Icon {
         bc.constrain_aspect_ratio(self.paths.size.aspect_ratio(), self.paths.size.width)
     }
     fn paint(&mut self, ctx: &mut PaintCtx, _data: &T, env: &Env) {
-        let color = self.color.resolve(env);
+        let color = match !ctx.is_disabled(){
+            true => self.color.resolve(env),
+            false => env.get(theme::DISABLED_ICON_COLOR)
+        };
         let Size { width, height } = ctx.size();
         let Size {
             width: icon_width,

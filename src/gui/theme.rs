@@ -58,6 +58,7 @@ pub const UI_FONT_MONO: Key<FontDescriptor> = Key::new("app.ui-font-mono");
 pub const TEXT_SIZE_SMALL: Key<f64> = Key::new("app.text-size-small");
 
 pub const ICON_COLOR: Key<Color> = Key::new("app.icon-color");
+pub const DISABLED_ICON_COLOR: Key<Color> = Key::new("app.disabled-icon-color");
 //pub const ICON_SIZE_SMALL: Size = Size::new(14.0, 14.0);
 //pub const ICON_SIZE_MEDIUM: Size = Size::new(16.0, 16.0);
 //pub const ICON_SIZE_LARGE: Size = Size::new(22.0, 22.0);
@@ -76,6 +77,7 @@ impl Theme {
         env.set(WINDOW_BACKGROUND_COLOR, env.get(GREY_500));
         env.set(TEXT_COLOR, env.get(GREY_100));
         env.set(ICON_COLOR, env.get(GREY_100));
+        env.set(DISABLED_ICON_COLOR, env.get(GREY_400));
         env.set(PLACEHOLDER_COLOR, env.get(GREY_400));
         env.set(PRIMARY_LIGHT, env.get(BLUE_100));
         env.set(PRIMARY_DARK, env.get(BLUE_200));

@@ -1,10 +1,15 @@
 use std::ops::Index;
 use druid::{Widget, Lens, LensExt, Data, WidgetExt, lens, Selector, EventCtx, Event, Env};
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
+use druid::widget::{Button, Container, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
+use druid_material_icons::normal::image::EDIT;
+use druid_material_icons::normal::action::DELETE;
+use druid_material_icons::normal::navigation::ARROW_DROP_UP;
+use druid_material_icons::normal::navigation::ARROW_DROP_DOWN;
 use crate::{Account, Database, MainState};
 use crate::gui::account::AccountState;
 use crate::gui::util::{Indexed, IndexWrapper};
+use crate::gui::widgets::{Icon, WidgetButton};
 
 pub const OPEN_ACCOUNT: Selector<AccountState> = Selector::new("lol_account_manager_v2.edit.account");
 pub const CLOSE_EDITOR: Selector<(EditState, bool)> = Selector::new("lol_account_manager_v2.edit.close");
@@ -61,37 +66,52 @@ fn account_view() -> impl Widget<EditState> {
 }
 
 fn item_ui() -> impl Widget<Indexed<Account>> {
-    Flex::row()
-        .with_flex_child(
-            Label::new(|entry: &Indexed<Account>, _: &_| entry.name.to_string())
-                .center()
-                .expand()
-                .padding(3.0), 1.0)
-        .with_spacer(3.0)
-        .with_child(Button::new("Edit")
-            .on_click(|ctx,entry: &mut Indexed<Account>,_|
-                ctx.submit_command(EDIT_ACCOUNT.with(entry.index())))
-            .expand_height()
-            .padding(3.0))
-        .with_child(Flex::column()
-            .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
+    Container::new(
+        Flex::row()
             .with_flex_child(
-                Button::new("Up")
-                    .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_first())
+                Label::new(|entry: &Indexed<Account>, _: &_| entry.name.to_string())
+                    .center()
+                    .expand()
+                    .padding(3.0), 1.0)
+            .with_spacer(3.0)
+            .with_child(
+                WidgetButton::new(Icon::new(EDIT)
+                    .expand_height()
+                    .padding(3.0))
+                    .on_click(|ctx,entry: &mut Indexed<Account>,_|
+                        ctx.submit_command(EDIT_ACCOUNT.with(entry.index())))
+                    )
+            .with_spacer(3.0)
+            .with_child(
+                Flex::column()
+                    .with_flex_child(
+                        WidgetButton::new(Icon::new(ARROW_DROP_UP)
+                            .expand_height()
+                            .center())
+                            .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_first())
+                            .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                                ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), -1)))), 1.0)
+                    .with_spacer(3.0)
+                    .with_flex_child(
+                        WidgetButton::new(Icon::new(ARROW_DROP_DOWN)
+                            .expand_height()
+                            .center())
+                            .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_last())
+                            .on_click(|ctx, entry: &mut Indexed<Account>, _|
+                                ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0)
+                    .fix_width(44.0)
+            )
+            .with_spacer(3.0)
+            .with_child(
+                WidgetButton::new(Icon::new(DELETE)
+                    .expand_height()
+                    .padding(3.0))
                     .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                        ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), -1)))), 1.0)
-            .with_flex_child(
-                Button::new("Down")
-                    .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_last())
-                    .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                        ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0)
-            .expand_height())
-        .with_child(Button::new("Delete")
-            .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                ctx.submit_command(DELETE_ACCOUNT.with(entry.index())))
-            .expand_height()
-            .padding(3.0))
+                        ctx.submit_command(DELETE_ACCOUNT.with(entry.index())))
+                    )
+    )
         .expand_width()
+        .padding(8.0)
         .fix_height(60.0)
         .background(BACKGROUND_LIGHT)
         .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)

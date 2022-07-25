@@ -27,21 +27,23 @@ impl<T: Data, W: Widget<T>> Widget<T> for WidgetButton<T, W> {
     fn event(&mut self, ctx: &mut EventCtx, event: &Event, _data: &mut T, _env: &Env) {
         match event {
             Event::MouseDown(_) => {
-                ctx.set_active(true);
-                ctx.request_paint();
-            }
-            Event::MouseUp(_) => {
-                if ctx.is_active() {
-                    ctx.set_active(false);
+                if !ctx.is_disabled() {
+                    ctx.set_active(true);
                     ctx.request_paint();
                 }
+            }
+            Event::MouseUp(_) => {
+                if ctx.is_active() && !ctx.is_disabled() {
+                    ctx.request_paint();
+                }
+                ctx.set_active(false);
             }
             _ => (),
         }
     }
 
     fn lifecycle(&mut self, ctx: &mut LifeCycleCtx, event: &LifeCycle, data: &T, env: &Env) {
-        if let LifeCycle::HotChanged(_) = event {
+        if let LifeCycle::HotChanged(_) | LifeCycle::DisabledChanged(_) = event {
             ctx.request_paint();
         }
         self.inner.lifecycle(ctx, event, data, env)
@@ -60,7 +62,7 @@ impl<T: Data, W: Widget<T>> Widget<T> for WidgetButton<T, W> {
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, env: &Env) {
-        let is_active = ctx.is_active();
+        let is_active = ctx.is_active() && !ctx.is_disabled();
         let is_hot = ctx.is_hot();
         let size = ctx.size();
         let stroke_width = env.get(theme::BUTTON_BORDER_WIDTH);
@@ -70,7 +72,16 @@ impl<T: Data, W: Widget<T>> Widget<T> for WidgetButton<T, W> {
             .inset(-stroke_width / 2.0)
             .to_rounded_rect(env.get(theme::BUTTON_BORDER_RADIUS));
 
-        let bg_gradient = if is_active {
+        let bg_gradient = if ctx.is_disabled() {
+            LinearGradient::new(
+                UnitPoint::TOP,
+                UnitPoint::BOTTOM,
+                (
+                    env.get(theme::DISABLED_BUTTON_LIGHT),
+                    env.get(theme::DISABLED_BUTTON_DARK),
+                ),
+            )
+        } else if is_active {
             LinearGradient::new(
                 UnitPoint::TOP,
                 UnitPoint::BOTTOM,
@@ -84,7 +95,7 @@ impl<T: Data, W: Widget<T>> Widget<T> for WidgetButton<T, W> {
             )
         };
 
-        let border_color = if is_hot {
+        let border_color = if is_hot && !ctx.is_disabled() {
             env.get(theme::BORDER_LIGHT)
         } else {
             env.get(theme::BORDER_DARK)
@@ -101,4 +112,5 @@ impl<T: Data, W: Widget<T>> Widget<T> for WidgetButton<T, W> {
             self.inner.paint(ctx, data, env);
         });
     }
+
 }
