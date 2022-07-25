@@ -63,7 +63,7 @@ fn account_view() -> impl Widget<EditState> {
 fn item_ui() -> impl Widget<Indexed<Account>> {
     Flex::row()
         .with_flex_child(
-            Label::new(|entry: &Indexed<Account>, _: &_| format!("{}", entry.name))
+            Label::new(|entry: &Indexed<Account>, _: &_| entry.name.to_string())
                 .center()
                 .expand()
                 .padding(3.0), 1.0)
@@ -114,8 +114,8 @@ impl<W: Widget<EditState>> Controller<EditState, W> for ListController {
             Event::Command(cmd) if cmd.is(MOVE_ACCOUNT) => {
                 let (index, offset) = *cmd.get_unchecked(MOVE_ACCOUNT);
                 let target = match offset.is_negative() {
-                    true => index.saturating_sub(offset.abs() as usize),
-                    false => index.saturating_add(offset.abs() as usize),
+                    true => index.saturating_sub(offset.unsigned_abs() as usize),
+                    false => index.saturating_add(offset.unsigned_abs() as usize),
                 };
                 data.database.accounts.swap(index, target);
             }

@@ -1,9 +1,11 @@
 use druid::{Selector, Data, Lens, Widget, WidgetExt, TextAlignment, lens, LensExt, theme};
 use druid::im::Vector;
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Flex, List, MainAxisAlignment, Scroll, TextBox};
+use druid::widget::{Button, Flex, List, Scroll, TextBox};
+use druid_material_icons::normal::image::EDIT;
+use druid_material_icons::normal::action::SETTINGS;
 use crate::{Account, Database, Settings};
-use crate::gui::widgets::{IconButton, icons};
+use crate::gui::widgets::{WidgetButton, Icon};
 
 pub const OPEN_SETTINGS: Selector<MainState> = Selector::new("lol_account_manager_v2.main.settings");
 pub const OPEN_EDITOR: Selector<MainState> = Selector::new("lol_account_manager_v2.main.editor");
@@ -32,17 +34,17 @@ pub fn build_main_ui() -> impl Widget<MainState> {
                 .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
                 .rounded(TEXTBOX_BORDER_RADIUS), 1.0)
             .with_spacer(3.0)
-            .with_child(Flex::row()
-                .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
-                .with_flex_child(IconButton::new(&icons::EDIT)
-                    .on_click(|ctx, state: &mut MainState ,_|
-                        ctx.submit_command(OPEN_EDITOR.with(state.clone()))), 1.0)
-                .with_spacer(3.0)
-                .with_flex_child(IconButton::new(&icons::PREFERENCES)
-                    .on_click(|ctx, state: &mut MainState, _|
-                        ctx.submit_command(OPEN_SETTINGS.with(state.clone()))), 1.0) //Button::new("O").expand()
-                .fix_width(103.0)
-                .expand_height())
+            .with_child(WidgetButton::new(Icon::new(EDIT)
+                .expand_height()
+                .padding(3.0))
+                .on_click(|ctx, state: &mut MainState ,_|
+                    ctx.submit_command(OPEN_EDITOR.with(state.clone()))))
+            .with_spacer(3.0)
+            .with_child(WidgetButton::new(Icon::new(SETTINGS)
+                .expand_height()
+                .padding(3.0))
+                .on_click(|ctx, state: &mut MainState, _|
+                    ctx.submit_command(OPEN_SETTINGS.with(state.clone()))))
             .expand_width()
             .fix_height(50.0))
         .with_spacer(3.0)
@@ -73,7 +75,7 @@ fn account_view() -> impl Widget<MainState> {
 }
 
 fn item_ui() -> impl Widget<Account> {
-    Button::new(|item: &Account, _: &_| format!("{}", item.name))
+    Button::new(|item: &Account, _: &_| item.name.to_string())
         .on_click(|_ctx, acc: &mut Account, _env| {
             println!("Login: {}", acc.name);
         })

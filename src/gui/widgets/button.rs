@@ -1,28 +1,29 @@
+use std::marker::PhantomData;
 use druid::widget::prelude::*;
 use druid::widget::{Click, ControllerHost};
-use druid::{theme, Affine, Data, LinearGradient, UnitPoint};
-use crate::gui::widgets::Icon;
+use druid::{theme, Data, LinearGradient, UnitPoint};
 
-pub struct IconButton {
-    icon: Icon,
-    icon_size: Size,
+pub struct WidgetButton<T, W> {
+    inner: W,
+    _phantom: PhantomData<T>
 }
 
-impl IconButton {
+impl<T: Data, W: Widget<T>> WidgetButton<T, W> {
 
-    pub fn new(icon: impl Into<Icon>) -> IconButton {
-        IconButton {
-            icon: icon.into(),
-            icon_size: Size::ZERO
+    pub fn new(inner: W) -> Self {
+        WidgetButton {
+            inner,
+            //icon_size: Size::ZERO
+            _phantom: Default::default()
         }
     }
 
-    pub fn on_click<T: Data>(self, f: impl Fn(&mut EventCtx, &mut T, &Env) + 'static) -> ControllerHost<Self, Click<T>> {
+    pub fn on_click(self, f: impl Fn(&mut EventCtx, &mut T, &Env) + 'static) -> ControllerHost<Self, Click<T>> {
         ControllerHost::new(self, Click::new(f))
     }
 }
 
-impl<T: Data> Widget<T> for IconButton {
+impl<T: Data, W: Widget<T>> Widget<T> for WidgetButton<T, W> {
     fn event(&mut self, ctx: &mut EventCtx, event: &Event, _data: &mut T, _env: &Env) {
         match event {
             Event::MouseDown(_) => {
@@ -43,19 +44,19 @@ impl<T: Data> Widget<T> for IconButton {
         if let LifeCycle::HotChanged(_) = event {
             ctx.request_paint();
         }
-        self.icon.lifecycle(ctx, event, data, env)
+        self.inner.lifecycle(ctx, event, data, env)
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx, old_data: &T, data: &T, env: &Env) {
-        self.icon.update(ctx, old_data, data, env)
+        self.inner.update(ctx, old_data, data, env)
     }
 
     fn layout(&mut self, ctx: &mut LayoutCtx, bc: &BoxConstraints, data: &T, env: &Env) -> Size {
         bc.debug_check("Button");
         let label_bc = bc.loosen();
-        self.icon_size = self.icon.layout(ctx, &label_bc, data, env);
-
-        bc.constrain(self.icon_size)
+        //self.icon_size = self.icon.layout(ctx, &label_bc, data, env);
+        //bc.constrain(self.icon_size)
+        bc.constrain(self.inner.layout(ctx, &label_bc, data, env))
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx, data: &T, env: &Env) {
@@ -93,11 +94,11 @@ impl<T: Data> Widget<T> for IconButton {
 
         ctx.fill(rounded_rect, &bg_gradient);
 
-        let label_offset = (size.to_vec2() - self.icon_size.to_vec2()) / 2.0;
+        //let label_offset = (size.to_vec2() - self.icon_size.to_vec2()) / 2.0;
 
         ctx.with_save(|ctx| {
-            ctx.transform(Affine::translate(label_offset));
-            self.icon.paint(ctx, data, env);
+            //ctx.transform(Affine::translate(label_offset));
+            self.inner.paint(ctx, data, env);
         });
     }
 }

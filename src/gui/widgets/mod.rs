@@ -1,5 +1,5 @@
 pub mod icons;
-pub mod button;
+mod button;
 
 pub use icons::Icon;
-pub use button::IconButton;
+pub use button::WidgetButton;

@@ -4,7 +4,7 @@ mod settings;
 mod main;
 mod edit;
 mod account;
-mod theme;
+pub mod theme;
 
 use std::ops::IndexMut;
 use druid::{Data, Event, Widget, WidgetExt, Lens, EventCtx, Env};
