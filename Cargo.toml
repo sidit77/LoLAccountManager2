@@ -13,6 +13,8 @@ druid = { git = "https://github.com/sidit77/druid.git", features = ["im", "raw-w
 druid-enums = { git = "https://github.com/finnerale/druid-enums" }
 log = "0.4.17"
 druid-material-icons = "0.1.0"
+fake = "2.5"
+rand = "0.8"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["windef", "winerror"] }

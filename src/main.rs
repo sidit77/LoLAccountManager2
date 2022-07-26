@@ -33,60 +33,15 @@ impl AppDelegate<AppState> for ProgramDelegate {
 
 
 pub fn get_test_database() -> Database {
+    use fake::Fake;
+    use fake::faker::internet::en::*;
+
     Database {
-        accounts: NAMES.iter().map(|s| Account {
-            name: s.to_string()
+        accounts: (0..20).into_iter().map(|_|Account {
+            name: Username().fake(),
+            username: Username().fake(),
+            password: Password(6..20).fake(),
+            notes: FreeEmailProvider().fake()
         }).collect()
     }
 }
-
-const NAMES: &[&str] = &[
-    "Allegra",
-    "Bree",
-    "Bryna",
-    "Carrissa",
-    "Clair",
-    "Cleopatra",
-    "Corinna",
-    "Dacia",
-    "Dinah",
-    "Dionis",
-    "Ermentrude",
-    "Felicdad",
-    "Flori",
-    "Geneva",
-    "Gussie",
-    "Jazmin",
-    "Jeannette",
-    "Jenine",
-    "Joann",
-    "Layney",
-    "Leona",
-    "Lizzy",
-    "Lucita",
-    "Lyndsey",
-    "Marcelia",
-    "Marlene",
-    "Mirabelle",
-    "Nanci",
-    "Nyssa",
-    "Ora",
-    "Paula",
-    "Phyllis",
-    "Prissie",
-    "Riannon",
-    "Roby",
-    "Salomi",
-    "Shaylyn",
-    "Shela",
-    "Siobhan",
-    "Sioux",
-    "Susanetta",
-    "Tallulah",
-    "Tiffi",
-    "Valentine",
-    "Van",
-    "Verine",
-    "Wallie",
-    "Yvonne",
-];

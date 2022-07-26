@@ -22,18 +22,21 @@ pub use main::MainState;
 pub use theme::{Theme};
 
 
-#[derive(Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens)]
 pub struct Settings {
     pub close_on_login: bool,
     pub theme: Theme
 }
 
-#[derive(Clone, Default, Data, Lens)]
+#[derive(Debug, Clone, Default, Data, Lens)]
 pub struct Account {
-    pub name: String
+    pub name: String,
+    pub username: String,
+    pub password: String,
+    pub notes: String
 }
 
-#[derive(Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens)]
 pub struct Database {
     pub accounts: Vector<Account>
 }

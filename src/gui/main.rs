@@ -78,7 +78,7 @@ fn account_view() -> impl Widget<MainState> {
 fn item_ui() -> impl Widget<Account> {
     Button::new(|item: &Account, _: &_| item.name.to_string())
         .on_click(|_ctx, acc: &mut Account, _env| {
-            println!("Login: {}", acc.name);
+            println!("Login: {:?}", acc);
         })
         .expand()
         .height(50.0)
