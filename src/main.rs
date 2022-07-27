@@ -15,12 +15,21 @@ pub fn main() {
     AppLauncher::with_window(window)
         .delegate(ProgramDelegate)
         .log_to_console()
-        .launch(AppState::Main(MainState {
-            settings: Settings::load().unwrap(),
-            filter: "".to_string(),
-            database: get_test_database()
-        }))
+        .launch(create_state().unwrap())
         .expect("launch failed");
+}
+
+pub fn create_state() -> anyhow::Result<AppState> {
+    let settings = Settings::load()?;
+    let database = match &settings.last_database {
+        Some(path) => Database::load(path)?,
+        None => unimplemented!()
+    };
+    Ok(AppState::Main(MainState {
+        settings,
+        filter: "".to_string(),
+        database
+    }))
 }
 
 struct ProgramDelegate;
@@ -28,20 +37,5 @@ struct ProgramDelegate;
 impl AppDelegate<AppState> for ProgramDelegate {
     fn window_added(&mut self, _id: WindowId, handle: WindowHandle, _data: &mut AppState, _env: &Env, _ctx: &mut DelegateCtx) {
         set_window_icon(&handle);
-    }
-}
-
-
-pub fn get_test_database() -> Database {
-    use fake::Fake;
-    use fake::faker::internet::en::*;
-
-    Database {
-        accounts: (0..20).into_iter().map(|_|Account {
-            name: Username().fake(),
-            username: Username().fake(),
-            password: Password(6..20).fake(),
-            notes: FreeEmailProvider().fake()
-        }).collect()
     }
 }

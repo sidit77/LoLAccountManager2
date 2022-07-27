@@ -69,17 +69,37 @@ impl Settings {
 
 }
 
-#[derive(Debug, Clone, Default, Data, Lens)]
+#[derive(Debug, Clone, Default, Data, Lens, Serialize, Deserialize)]
 pub struct Account {
     pub name: String,
     pub username: String,
     pub password: String,
+    #[serde(with = "util::string_list")]
     pub notes: String
 }
 
-#[derive(Debug, Clone, Data, Lens)]
+#[derive(Debug, Default, Clone, Data, Lens)]
 pub struct Database {
-    pub accounts: Vector<Account>
+    pub accounts: Vector<Account>,
+    pub password: String,
+    pub path: String,
+}
+
+impl Database {
+
+    pub fn load(path: &str) -> anyhow::Result<Self> {
+        let accounts: Vector<Account> = serde_yaml::from_reader(File::open(path)?)?;
+        Ok(Self {
+            accounts,
+            password: "".to_string(),
+            path: path.to_owned()
+        })
+    }
+
+    pub fn save(&self) -> anyhow::Result<()> {
+        Ok(serde_yaml::to_writer(File::create(&self.path)?, &self.accounts)?)
+    }
+
 }
 
 
@@ -146,7 +166,9 @@ impl Controller<AppState, App> for AppController {
                 let (state, save) = cmd.get_unchecked(CLOSE_EDITOR);
                 let mut main = state.previous.clone();
                 if *save {
-                    main.database = state.database.clone();
+                    let db = state.database.clone();
+                    db.save().unwrap();
+                    main.database = db;
                 }
                 *data = AppState::Main(main);
                 ctx.children_changed()

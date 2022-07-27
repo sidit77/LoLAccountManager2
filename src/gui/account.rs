@@ -4,7 +4,7 @@ use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{CrossAxisAlignment, Flex, Label, MainAxisAlignment, TextBox};
 use druid_material_icons::IconPaths;
 use druid_material_icons::normal::navigation::CLOSE;
-use druid_material_icons::normal::content::SAVE;
+use druid_material_icons::normal::action::DONE;
 use crate::Account;
 use crate::gui::edit::EditState;
 use crate::gui::widgets::{Icon, WidgetButton};
@@ -60,14 +60,14 @@ pub fn build_account_ui() -> impl Widget<AccountState> {
         .with_child(Flex::row()
             .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
             .with_flex_child(
-                icon_text_button(CLOSE, "Discard")
-                    .on_click(|ctx, state: &mut AccountState, _|
-                        ctx.submit_command(CLOSE_ACCOUNT.with((state.clone(),false)))), 1.0)
-            .with_spacer(3.0)
-            .with_flex_child(
-                icon_text_button(SAVE, "Save")
+                icon_text_button(DONE, "Ok")
                     .on_click(|ctx, state: &mut AccountState, _|
                         ctx.submit_command(CLOSE_ACCOUNT.with((state.clone(), true)))), 1.0)
+            .with_spacer(3.0)
+            .with_flex_child(
+                icon_text_button(CLOSE, "Cancel")
+                    .on_click(|ctx, state: &mut AccountState, _|
+                        ctx.submit_command(CLOSE_ACCOUNT.with((state.clone(),false)))), 1.0)
             .expand_width()
             .fix_height(50.0))
         .padding(6.0)
