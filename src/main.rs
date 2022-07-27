@@ -16,7 +16,7 @@ pub fn main() {
         .delegate(ProgramDelegate)
         .log_to_console()
         .launch(AppState::Main(MainState {
-            settings: Settings { close_on_login: false, theme: Theme::Light },
+            settings: Settings::load().unwrap(),
             filter: "".to_string(),
             database: get_test_database()
         }))

@@ -6,12 +6,17 @@ mod edit;
 mod account;
 pub mod theme;
 
+use std::fs::File;
 use std::ops::IndexMut;
+use std::path::PathBuf;
+use directories::BaseDirs;
+use serde::{Serialize, Deserialize};
 use druid::{Data, Event, Widget, WidgetExt, Lens, EventCtx, Env};
 use druid::im::Vector;
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
 use druid_enums::Matcher;
+use lazy_static::lazy_static;
 use crate::gui::main::{build_main_ui, OPEN_EDITOR, OPEN_SETTINGS};
 use crate::gui::settings::{build_settings_ui, SETTINGS_SAVE, SettingsState};
 use crate::gui::edit::{build_edit_ui, CLOSE_EDITOR, OPEN_ACCOUNT, EditState};
@@ -21,11 +26,47 @@ use crate::gui::account::{AccountState, build_account_ui, CLOSE_ACCOUNT, EditMod
 pub use main::MainState;
 pub use theme::{Theme};
 
+lazy_static!{
+    static ref CONFIG_PATH: PathBuf = {
+        let mut pargs = pico_args::Arguments::from_env();
+        match pargs.opt_value_from_str("--config-path").unwrap() {
+            Some(config_dir) => config_dir,
+            None => BaseDirs::new()
+                .expect("Could find the settings path")
+                .preference_dir()
+                .join("lol_account_manager.yml")
+        }
+    };
+}
 
-#[derive(Debug, Clone, Data, Lens)]
+#[derive(Debug, Default, Clone, Data, Lens, Serialize, Deserialize)]
 pub struct Settings {
     pub close_on_login: bool,
-    pub theme: Theme
+    pub theme: Theme,
+    pub last_database: Option<String>
+}
+
+impl Settings {
+
+    pub fn load() -> anyhow::Result<Self> {
+        Ok(match CONFIG_PATH.exists() {
+            true => serde_yaml::from_reader(File::open(&*CONFIG_PATH)?)?,
+            false => {
+                let result = Self::default();
+                Self::save(&result)?;
+                result
+            }
+        })
+    }
+
+    pub fn save(&self) -> anyhow::Result<()> {
+        if let Some(path) = CONFIG_PATH.parent() {
+            std::fs::create_dir_all(path)?;
+        }
+        serde_yaml::to_writer(File::create(&*CONFIG_PATH)?, self)?;
+        Ok(())
+    }
+
 }
 
 #[derive(Debug, Clone, Default, Data, Lens)]
@@ -95,6 +136,7 @@ impl Controller<AppState, App> for AppController {
             },
             Event::Command(cmd) if cmd.is(SETTINGS_SAVE) => {
                 let settings_state= cmd.get_unchecked(SETTINGS_SAVE);
+                settings_state.settings.save().unwrap();
                 let mut main = settings_state.previous.clone();
                 main.settings = settings_state.settings.clone();
                 *data = AppState::Main(main);
