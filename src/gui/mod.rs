@@ -4,6 +4,7 @@ mod settings;
 mod main;
 mod edit;
 mod account;
+mod setup;
 pub mod theme;
 
 use std::fs::File;
@@ -21,9 +22,10 @@ use crate::gui::main::{build_main_ui, OPEN_EDITOR, OPEN_SETTINGS};
 use crate::gui::settings::{build_settings_ui, SETTINGS_SAVE, SettingsState};
 use crate::gui::edit::{build_edit_ui, CLOSE_EDITOR, OPEN_ACCOUNT, EditState};
 use crate::gui::account::{AccountState, build_account_ui, CLOSE_ACCOUNT, EditMode};
-
+use crate::gui::setup::{build_setup_ui, SETUP_CONFIRM};
 
 pub use main::MainState;
+pub use setup::SetupState;
 pub use theme::{Theme};
 
 lazy_static!{
@@ -109,7 +111,8 @@ pub enum AppState {
     Settings(SettingsState),
     Main(MainState),
     Editor(EditState),
-    Account(AccountState)
+    Account(AccountState),
+    Setup(SetupState)
 }
 
 impl AppState {
@@ -118,7 +121,8 @@ impl AppState {
             AppState::Settings(state) => state.settings.theme,
             AppState::Main(state) => state.settings.theme,
             AppState::Editor(state) => state.previous.settings.theme,
-            AppState::Account(state) => state.previous.previous.settings.theme
+            AppState::Account(state) => state.previous.previous.settings.theme,
+            AppState::Setup(state) => state.settings.theme
         }
     }
 }
@@ -129,6 +133,7 @@ pub fn ui() -> impl Widget<AppState> {
         .settings(build_settings_ui())
         .editor(build_edit_ui())
         .account(build_account_ui())
+        .setup(build_setup_ui())
         .controller(AppController)
         .background(BACKGROUND_DARK)
         .env_scope(|env,state: &AppState| state.current_theme().setup(env))
@@ -188,6 +193,16 @@ impl Controller<AppState, App> for AppController {
                     };
                 }
                 *data = AppState::Editor(new);
+                ctx.children_changed()
+            },
+            Event::Command(cmd) if cmd.is(SETUP_CONFIRM) => {
+                let state = cmd.get_unchecked(SETUP_CONFIRM);
+                let new = MainState {
+                    settings: state.settings.clone(),
+                    filter: "".to_string(),
+                    database: Default::default()
+                };
+                *data = AppState::Main(new);
                 ctx.children_changed()
             },
             _ => {}

@@ -2,12 +2,11 @@ use druid::{Widget, Lens, Data, WidgetExt, Selector};
 use druid::text::{EditableText, TextStorage};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{CrossAxisAlignment, Flex, Label, MainAxisAlignment, TextBox};
-use druid_material_icons::IconPaths;
 use druid_material_icons::normal::navigation::CLOSE;
 use druid_material_icons::normal::action::DONE;
 use crate::Account;
 use crate::gui::edit::EditState;
-use crate::gui::widgets::{Icon, WidgetButton};
+use crate::gui::util::{field, icon_text_button};
 
 pub const CLOSE_ACCOUNT: Selector<(AccountState, bool)> = Selector::new("lol_account_manager_v2.account.close");
 
@@ -74,31 +73,6 @@ pub fn build_account_ui() -> impl Widget<AccountState> {
         .expand()
 }
 
-fn icon_text_button<T: Data>(icon: IconPaths, text: &str) -> impl Widget<T> {
-    WidgetButton::new(
-        Flex::row()
-            .with_child(Icon::new(icon))
-            .with_spacer(3.0)
-            .with_child(Label::new(text))
-            .center()
-    )
-}
-
-
-fn field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
-    Flex::column()
-        .cross_axis_alignment(CrossAxisAlignment::Start)
-        .with_child(Label::new(name))
-        .with_spacer(2.0)
-        .with_child(
-            TextBox::new()
-                .expand_width()
-        )
-        .padding(3.0)
-        .expand_width()
-        .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
-        .rounded(TEXTBOX_BORDER_RADIUS)
-}
 
 fn multiline_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
     Flex::column()

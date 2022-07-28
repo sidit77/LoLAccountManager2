@@ -4,7 +4,7 @@ mod gui;
 mod os;
 
 use druid::{AppDelegate, AppLauncher, DelegateCtx, Env, LocalizedString, WindowDesc, WindowHandle, WindowId};
-use crate::gui::{Account, AppState, Database, MainState, Settings, Theme, ui};
+use crate::gui::{Account, AppState, Database, MainState, SetupState, Settings, Theme, ui};
 
 use crate::os::set_window_icon;
 
@@ -15,7 +15,8 @@ pub fn main() {
     AppLauncher::with_window(window)
         .delegate(ProgramDelegate)
         .log_to_console()
-        .launch(create_state().unwrap())
+        .launch(AppState::Setup(SetupState::new(Settings::load().unwrap())))
+        //.launch(create_state().unwrap())
         .expect("launch failed");
 }
 

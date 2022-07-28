@@ -11,8 +11,9 @@ lto = true
 [dependencies]
 anyhow = { version="1.0", features=["backtrace"] }
 lazy_static = "1.4"
-druid = { git = "https://github.com/sidit77/druid.git", features = ["im", "raw-win-handle", "serde"]}
+druid = { git = "https://github.com/linebender/druid", features = ["im", "raw-win-handle", "serde"]}
 druid-enums = { git = "https://github.com/finnerale/druid-enums" }
+druid-widget-nursery = { git = "https://github.com/linebender/druid-widget-nursery", features=["derive"] }
 log = "0.4.17"
 druid-material-icons = "0.1.0"
 directories = "4.0"
@@ -25,3 +26,6 @@ winapi = { version = "0.3", features = ["windef", "winerror"] }
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+
+[patch.'https://github.com/linebender/druid'.druid]
+git = "https://github.com/sidit77/druid"

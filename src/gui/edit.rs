@@ -1,8 +1,7 @@
 use std::ops::Index;
 use druid::{Widget, Lens, LensExt, Data, WidgetExt, lens, Selector, EventCtx, Event, Env};
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Container, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
-use druid_material_icons::IconPaths;
+use druid::widget::{AspectRatioBox, Container, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::DELETE;
 use druid_material_icons::normal::navigation::ARROW_DROP_UP;
@@ -12,7 +11,7 @@ use druid_material_icons::normal::content::SAVE;
 use druid_material_icons::normal::navigation::CLOSE;
 use crate::{Account, Database, MainState};
 use crate::gui::account::AccountState;
-use crate::gui::util::{Indexed, IndexWrapper};
+use crate::gui::util::{icon_text_button, Indexed, IndexWrapper};
 use crate::gui::widgets::{Icon, WidgetButton};
 
 pub const OPEN_ACCOUNT: Selector<AccountState> = Selector::new("lol_account_manager_v2.edit.account");
@@ -58,16 +57,6 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
         .padding(5.0)
 }
 
-fn icon_text_button<T: Data>(icon: IconPaths, text: &str) -> impl Widget<T> {
-    WidgetButton::new(
-        Flex::row()
-            .with_child(Icon::new(icon))
-            .with_spacer(3.0)
-            .with_child(Label::new(text))
-            .center()
-    )
-}
-
 fn account_view() -> impl Widget<EditState> {
     Scroll::new(List::new(item_ui)
         .with_spacing(3.0))
@@ -97,6 +86,7 @@ fn item_ui() -> impl Widget<Indexed<Account>> {
                     )
             .with_spacer(3.0)
             .with_child(
+                AspectRatioBox::new(
                 Flex::column()
                     .with_flex_child(
                         WidgetButton::new(Icon::new(ARROW_DROP_UP)
@@ -112,8 +102,7 @@ fn item_ui() -> impl Widget<Indexed<Account>> {
                             .center())
                             .disabled_if(|entry: &Indexed<Account>, _: &_| entry.is_last())
                             .on_click(|ctx, entry: &mut Indexed<Account>, _|
-                                ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0)
-                    .fix_width(44.0)
+                                ctx.submit_command(MOVE_ACCOUNT.with((entry.index(), 1)))), 1.0), 1.0)
             )
             .with_spacer(3.0)
             .with_child(

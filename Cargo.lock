@@ -287,7 +287,7 @@ dependencies = [
 [[package]]
 name = "druid"
 version = "0.7.0"
-source = "git+https://github.com/sidit77/druid.git#ad6ef41711f83d12fe09bea09e8bd0c07c3da964"
+source = "git+https://github.com/sidit77/druid#264b2d37473610f0c3fe377832b104ca20dc4665"
 dependencies = [
  "console_error_panic_hook",
  "druid-derive",
@@ -309,7 +309,7 @@ dependencies = [
 [[package]]
 name = "druid-derive"
 version = "0.4.0"
-source = "git+https://github.com/sidit77/druid.git#ad6ef41711f83d12fe09bea09e8bd0c07c3da964"
+source = "git+https://github.com/sidit77/druid#264b2d37473610f0c3fe377832b104ca20dc4665"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -340,7 +340,7 @@ dependencies = [
 [[package]]
 name = "druid-shell"
 version = "0.7.0"
-source = "git+https://github.com/sidit77/druid.git#ad6ef41711f83d12fe09bea09e8bd0c07c3da964"
+source = "git+https://github.com/sidit77/druid#264b2d37473610f0c3fe377832b104ca20dc4665"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -369,6 +369,27 @@ dependencies = [
  "web-sys",
  "winapi",
  "wio",
+]
+
+[[package]]
+name = "druid-widget-nursery"
+version = "0.1.0"
+source = "git+https://github.com/linebender/druid-widget-nursery#f6710e79f191acafb549bc2294eff2021f650f3d"
+dependencies = [
+ "druid",
+ "druid-widget-nursery-derive",
+ "log",
+ "tracing",
+]
+
+[[package]]
+name = "druid-widget-nursery-derive"
+version = "0.1.0"
+source = "git+https://github.com/linebender/druid-widget-nursery#f6710e79f191acafb549bc2294eff2021f650f3d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -866,6 +887,7 @@ dependencies = [
  "druid",
  "druid-enums",
  "druid-material-icons",
+ "druid-widget-nursery",
  "lazy_static",
  "log",
  "pico-args",
@@ -1155,9 +1177,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.41"
+version = "1.0.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cdcc2916cde080c1876ff40292a396541241fe0072ef928cd76582e9ea5d60d2"
+checksum = "c278e965f1d8cf32d6e0e96de3d3e79712178ae67986d9cf9151f51e95aac89b"
 dependencies = [
  "unicode-ident",
 ]
