@@ -1,7 +1,7 @@
 use std::ops::Index;
 use druid::{Widget, Lens, LensExt, Data, WidgetExt, lens, Selector, EventCtx, Event, Env};
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{AspectRatioBox, Container, Controller, Flex, Label, List, MainAxisAlignment, Scroll};
+use druid::widget::{AspectRatioBox, Container, Controller, Flex, Label, List, MainAxisAlignment};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::DELETE;
 use druid_material_icons::normal::navigation::ARROW_DROP_UP;
@@ -49,7 +49,15 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
             .fix_height(50.0))
         .with_spacer(3.0)
         .with_flex_child(
-            account_view()
+            List::new(item_ui)
+                .with_spacing(3.0)
+                .scroll()
+                .vertical()
+                .lens(lens::Identity.map(
+                    |d: &EditState| IndexWrapper::from(d.database.accounts.clone()),
+                    |d: &mut EditState, x: IndexWrapper<Account>| d.database.accounts = x.into(),
+                ))
+                .controller(ListController)
                 .expand()
                 .padding(3.0)
                 .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
@@ -57,16 +65,6 @@ pub fn build_edit_ui() -> impl Widget<EditState> {
         .padding(5.0)
 }
 
-fn account_view() -> impl Widget<EditState> {
-    Scroll::new(List::new(item_ui)
-        .with_spacing(3.0))
-        .vertical()
-        .lens(lens::Identity.map(
-            |d: &EditState| IndexWrapper::from(d.database.accounts.clone()),
-            |d: &mut EditState, x: IndexWrapper<Account>| d.database.accounts = x.into(),
-        ))
-        .controller(ListController)
-}
 
 fn item_ui() -> impl Widget<Indexed<Account>> {
     Container::new(

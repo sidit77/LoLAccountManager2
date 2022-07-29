@@ -1,7 +1,7 @@
 use druid::{Selector, Data, Lens, Widget, WidgetExt, TextAlignment, lens, LensExt, theme};
 use druid::im::Vector;
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Flex, List, Scroll, TextBox};
+use druid::widget::{Button, Flex, List, TextBox};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::SETTINGS;
 use crate::{Account, Database, Settings};
@@ -49,30 +49,26 @@ pub fn build_main_ui() -> impl Widget<MainState> {
             .fix_height(50.0))
         .with_spacer(3.0)
         .with_flex_child(
-            account_view()
+            List::new(item_ui)
+                .with_spacing(3.0)
+                .scroll()
+                .vertical()
+                .lens(lens::Identity.map(
+                    |d: &MainState| d.database.accounts
+                        .iter()
+                        .filter(|acc|acc
+                            .name
+                            .to_lowercase()
+                            .contains(&d.filter.to_lowercase()))
+                        .cloned()
+                        .collect(),
+                    |_, _: Vector<Account>| {},
+                ))
                 .expand()
                 .padding(3.0)
-                //.background(BACKGROUND_LIGHT)
                 .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
                 .rounded(TEXTBOX_BORDER_RADIUS), 1.0)
         .padding(5.0)
-}
-
-fn account_view() -> impl Widget<MainState> {
-    Scroll::new(List::new(item_ui)
-        .with_spacing(3.0))
-        .vertical()
-        .lens(lens::Identity.map(
-            |d: &MainState| d.database.accounts
-                .iter()
-                .filter(|acc|acc
-                    .name
-                    .to_lowercase()
-                    .contains(&d.filter.to_lowercase()))
-                .cloned()
-                .collect(),
-            |_, _: Vector<Account>| {},
-        ))
 }
 
 fn item_ui() -> impl Widget<Account> {
