@@ -15,22 +15,21 @@ pub fn main() {
     AppLauncher::with_window(window)
         .delegate(ProgramDelegate)
         .log_to_console()
-        .launch(AppState::Setup(SetupState::new(Settings::load().unwrap())))
-        //.launch(create_state().unwrap())
+        //.launch(AppState::Setup(SetupState::new(Settings::load().unwrap())))
+        .launch(create_state().unwrap())
         .expect("launch failed");
 }
 
 pub fn create_state() -> anyhow::Result<AppState> {
     let settings = Settings::load()?;
-    let database = match &settings.last_database {
-        Some(path) => Database::load(path)?,
-        None => unimplemented!()
-    };
-    Ok(AppState::Main(MainState {
-        settings,
-        filter: "".to_string(),
-        database
-    }))
+    Ok(match settings.last_database.clone() {
+        Some(path) => AppState::Main(MainState {
+            settings,
+            filter: "".to_string(),
+            database: Database::load(&path).unwrap()
+        }),
+        None => AppState::Setup(SetupState::new(settings))
+    })
 }
 
 struct ProgramDelegate;

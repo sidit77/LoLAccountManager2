@@ -1,15 +1,16 @@
 use std::fmt::{Display, Formatter};
-use druid::{Widget, Data, Lens, WidgetExt, Selector, EventCtx, Event, Env};
+use druid::{Widget, Data, Lens, WidgetExt, Selector, EventCtx, Event, Env, FileDialogOptions, FileSpec};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Controller, CrossAxisAlignment, Flex, Label, Maybe, RadioGroup};
 use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use crate::gui::util::field;
+use crate::gui::util::{field, path_field, PathOptions};
 use crate::Settings;
 
 pub const SETUP_CONFIRM: Selector<SetupState> = Selector::new("lol_account_manager_v2.setup.confirm");
 
+const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
 
 #[derive(Clone, Data, Lens)]
 pub struct SetupState {
@@ -47,8 +48,11 @@ struct CreateState {
 }
 
 fn build_create_ui() -> impl Widget<CreateState> {
+    let options = FileDialogOptions::new()
+        .allowed_types(vec![YAML])
+        .default_name("database.yml");
     Flex::column()
-        .with_child(field("Path:").lens(CreateState::path))
+        .with_child(path_field("Destination:", PathOptions::Save(options)).lens(CreateState::path))
         .with_spacer(3.0)
         .with_child(field("Password:").lens(CreateState::password1))
         .with_spacer(3.0)
@@ -62,8 +66,11 @@ struct OpenState {
 }
 
 fn build_open_ui() -> impl Widget<OpenState> {
+    let options = FileDialogOptions::new()
+        .allowed_types(vec![YAML])
+        .default_name("database.yml");
     Flex::column()
-        .with_child(field("Path:").lens(OpenState::path))
+        .with_child(path_field("Location:", PathOptions::Open(options)).lens(OpenState::path))
         .with_spacer(3.0)
         .with_child(field("Password:").lens(OpenState::password))
 }
@@ -77,10 +84,16 @@ struct ImportState {
 }
 
 fn build_import_ui() -> impl Widget<ImportState> {
+    let source = FileDialogOptions::new()
+        .allowed_types(vec![YAML])
+        .default_name("database.yml");
+    let destination = FileDialogOptions::new()
+        .allowed_types(vec![YAML])
+        .default_name("database.yml");
     Flex::column()
-        .with_child(field("Input:").lens(ImportState::input_path))
+        .with_child(path_field("Source:", PathOptions::Open(source)).lens(ImportState::input_path))
         .with_spacer(3.0)
-        .with_child(field("Path:").lens(ImportState::output_path))
+        .with_child(path_field("Path:", PathOptions::Save(destination)).lens(ImportState::output_path))
         .with_spacer(3.0)
         .with_child(field("Password:").lens(ImportState::password1))
         .with_spacer(3.0)
