@@ -4,7 +4,7 @@ use druid_material_icons::normal::navigation::CLOSE;
 use druid_material_icons::normal::action::DONE;
 use crate::Account;
 use crate::gui::edit::EditState;
-use crate::gui::util::{field, icon_text_button, multiline_field};
+use crate::gui::util::{field, icon_text_button, multiline_field, password_field};
 
 pub const CLOSE_ACCOUNT: Selector<(AccountState, bool)> = Selector::new("lol_account_manager_v2.account.close");
 
@@ -49,7 +49,7 @@ pub fn build_account_ui() -> impl Widget<AccountState> {
             .with_spacer(3.0)
             .with_child(field("Username:").lens(Account::username))
             .with_spacer(3.0)
-            .with_child(field("Password:").lens(Account::password))
+            .with_child(password_field("Password:").lens(Account::password))
             .with_spacer(3.0)
             .with_flex_child(multiline_field("Notes:").lens(Account::notes), 1.0)
             .lens(AccountState::account), 1.0)

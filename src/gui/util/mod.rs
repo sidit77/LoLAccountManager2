@@ -36,6 +36,21 @@ pub fn field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
         .rounded(TEXTBOX_BORDER_RADIUS)
 }
 
+pub fn password_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
+    Flex::column()
+        .cross_axis_alignment(CrossAxisAlignment::Start)
+        .with_child(Label::new(name))
+        .with_spacer(2.0)
+        .with_child(
+            TextBox::new()
+                .expand_width()
+        )
+        .padding(3.0)
+        .expand_width()
+        .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
+        .rounded(TEXTBOX_BORDER_RADIUS)
+}
+
 pub fn multiline_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
     Flex::column()
         .cross_axis_alignment(CrossAxisAlignment::Start)

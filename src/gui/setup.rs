@@ -5,7 +5,7 @@ use druid::widget::{Button, Controller, CrossAxisAlignment, Flex, Label, Maybe, 
 use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use crate::gui::util::{field, path_field, PathOptions};
+use crate::gui::util::{password_field, path_field, PathOptions};
 use crate::Settings;
 
 pub const SETUP_CONFIRM: Selector<SetupState> = Selector::new("lol_account_manager_v2.setup.confirm");
@@ -54,9 +54,9 @@ fn build_create_ui() -> impl Widget<CreateState> {
     Flex::column()
         .with_child(path_field("Destination:", PathOptions::Save(options)).lens(CreateState::path))
         .with_spacer(3.0)
-        .with_child(field("Password:").lens(CreateState::password1))
+        .with_child(password_field("Password:").lens(CreateState::password1))
         .with_spacer(3.0)
-        .with_child(field("Repeat Password:").lens(CreateState::password2))
+        .with_child(password_field("Repeat Password:").lens(CreateState::password2))
 }
 
 #[derive(Clone, Data, Default, Eq, PartialEq, Lens)]
@@ -72,7 +72,7 @@ fn build_open_ui() -> impl Widget<OpenState> {
     Flex::column()
         .with_child(path_field("Location:", PathOptions::Open(options)).lens(OpenState::path))
         .with_spacer(3.0)
-        .with_child(field("Password:").lens(OpenState::password))
+        .with_child(password_field("Password:").lens(OpenState::password))
 }
 
 #[derive(Clone, Data, Default, Eq, PartialEq, Lens)]
@@ -95,9 +95,9 @@ fn build_import_ui() -> impl Widget<ImportState> {
         .with_spacer(3.0)
         .with_child(path_field("Path:", PathOptions::Save(destination)).lens(ImportState::output_path))
         .with_spacer(3.0)
-        .with_child(field("Password:").lens(ImportState::password1))
+        .with_child(password_field("Password:").lens(ImportState::password1))
         .with_spacer(3.0)
-        .with_child(field("Repeat Password:").lens(ImportState::password2))
+        .with_child(password_field("Repeat Password:").lens(ImportState::password2))
 }
 
 pub fn build_setup_ui() -> impl Widget<SetupState> {
