@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
-use druid::{Color, Env, FontDescriptor, FontFamily, FontWeight, Insets, Key, Data};
+use druid::{Color, Env, FontDescriptor, FontFamily, FontWeight, Insets, Key};
 use druid::theme::{BACKGROUND_DARK, BACKGROUND_LIGHT, BASIC_WIDGET_HEIGHT, BORDER_DARK, BORDER_LIGHT, BORDERED_WIDGET_HEIGHT, BUTTON_BORDER_RADIUS, BUTTON_BORDER_WIDTH, BUTTON_DARK, BUTTON_LIGHT, CURSOR_COLOR, DISABLED_BUTTON_DARK, DISABLED_BUTTON_LIGHT, FOREGROUND_DARK, FOREGROUND_LIGHT, PLACEHOLDER_COLOR, PRIMARY_DARK, PRIMARY_LIGHT, PROGRESS_BAR_RADIUS, SCROLLBAR_BORDER_COLOR, SCROLLBAR_COLOR, SCROLLBAR_EDGE_WIDTH, SCROLLBAR_FADE_DELAY, SCROLLBAR_MAX_OPACITY, SCROLLBAR_PAD, SCROLLBAR_RADIUS, SCROLLBAR_WIDTH, SELECTED_TEXT_BACKGROUND_COLOR, SELECTION_TEXT_COLOR, TEXT_COLOR, TEXT_SIZE_LARGE, TEXT_SIZE_NORMAL, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH, TEXTBOX_INSETS, UI_FONT, WIDE_WIDGET_WIDTH, WIDGET_CONTROL_COMPONENT_PADDING, WIDGET_PADDING_HORIZONTAL, WIDGET_PADDING_VERTICAL, WINDOW_BACKGROUND_COLOR};
+use crate::data::Theme;
 
 /*pub trait Theme {
     fn apply(env: &mut Env);
@@ -24,17 +24,6 @@ impl Theme for LightTheme {
     }
 }*/
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Data, Serialize, Deserialize)]
-pub enum Theme {
-    Light,
-    Dark
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Theme::Light
-    }
-}
 
 pub fn grid(m: f64) -> f64 {
     GRID * m
@@ -74,97 +63,96 @@ pub const LINK_HOT_COLOR: Key<Color> = Key::new("app.link-hot-color");
 pub const LINK_ACTIVE_COLOR: Key<Color> = Key::new("app.link-active-color");
 pub const LINK_COLD_COLOR: Key<Color> = Key::new("app.link-cold-color");
 
-impl Theme {
-    pub fn setup(self, env: &mut Env) {
-        match self {
-            Theme::Light => setup_light_theme(env),
-            Theme::Dark => setup_dark_theme(env),
-        };
 
-        env.set(WINDOW_BACKGROUND_COLOR, env.get(GREY_500));
-        env.set(TEXT_COLOR, env.get(GREY_100));
-        env.set(ICON_COLOR, env.get(GREY_100));
-        env.set(DISABLED_ICON_COLOR, env.get(GREY_400));
-        env.set(PLACEHOLDER_COLOR, env.get(GREY_400));
-        env.set(PRIMARY_LIGHT, env.get(BLUE_100));
-        env.set(PRIMARY_DARK, env.get(BLUE_200));
+pub fn setup_theme(theme: Theme, env: &mut Env) {
+    match theme {
+        Theme::Light => setup_light_theme(env),
+        Theme::Dark => setup_dark_theme(env),
+    };
 
-        env.set(BACKGROUND_LIGHT, env.get(GREY_700));
-        env.set(BACKGROUND_DARK, env.get(GREY_500));
-        env.set(FOREGROUND_LIGHT, env.get(GREY_100));
-        env.set(FOREGROUND_DARK, env.get(GREY_000));
+    env.set(WINDOW_BACKGROUND_COLOR, env.get(GREY_500));
+    env.set(TEXT_COLOR, env.get(GREY_100));
+    env.set(ICON_COLOR, env.get(GREY_100));
+    env.set(DISABLED_ICON_COLOR, env.get(GREY_400));
+    env.set(PLACEHOLDER_COLOR, env.get(GREY_400));
+    env.set(PRIMARY_LIGHT, env.get(BLUE_100));
+    env.set(PRIMARY_DARK, env.get(BLUE_200));
 
-        match self {
-            Theme::Light => {
-                env.set(BUTTON_LIGHT, env.get(GREY_700));
-                env.set(BUTTON_DARK, env.get(GREY_600));
-                env.set(DISABLED_BUTTON_LIGHT, env.get(GREY_700));
-                env.set(DISABLED_BUTTON_DARK, env.get(GREY_600));
-            }
-            Theme::Dark => {
-                env.set(BUTTON_LIGHT, env.get(GREY_600));
-                env.set(BUTTON_DARK, env.get(GREY_700));
-                env.set(DISABLED_BUTTON_LIGHT, env.get(GREY_600));
-                env.set(DISABLED_BUTTON_DARK, env.get(GREY_700));
-            }
+    env.set(BACKGROUND_LIGHT, env.get(GREY_700));
+    env.set(BACKGROUND_DARK, env.get(GREY_500));
+    env.set(FOREGROUND_LIGHT, env.get(GREY_100));
+    env.set(FOREGROUND_DARK, env.get(GREY_000));
+
+    match theme {
+        Theme::Light => {
+            env.set(BUTTON_LIGHT, env.get(GREY_700));
+            env.set(BUTTON_DARK, env.get(GREY_600));
+            env.set(DISABLED_BUTTON_LIGHT, env.get(GREY_700));
+            env.set(DISABLED_BUTTON_DARK, env.get(GREY_600));
         }
-
-        env.set(BORDER_LIGHT, env.get(GREY_300));
-        env.set(BORDER_DARK, env.get(GREY_400));
-
-        env.set(SELECTED_TEXT_BACKGROUND_COLOR, env.get(BLUE_200));
-        env.set(SELECTION_TEXT_COLOR, env.get(GREY_700));
-
-        env.set(CURSOR_COLOR, env.get(GREY_000));
-
-        env.set(PROGRESS_BAR_RADIUS, 4.0);
-        env.set(BUTTON_BORDER_RADIUS, 4.0);
-        env.set(BUTTON_BORDER_WIDTH, 1.0);
-
-        env.set(
-            UI_FONT,
-            FontDescriptor::new(FontFamily::SYSTEM_UI).with_size(13.0),
-        );
-        env.set(
-            UI_FONT_MEDIUM,
-            FontDescriptor::new(FontFamily::SYSTEM_UI)
-                .with_size(13.0)
-                .with_weight(FontWeight::MEDIUM),
-        );
-        env.set(
-            UI_FONT_MONO,
-            FontDescriptor::new(FontFamily::MONOSPACE).with_size(13.0),
-        );
-        env.set(TEXT_SIZE_SMALL, 11.0);
-        env.set(TEXT_SIZE_NORMAL, 13.0);
-        env.set(TEXT_SIZE_LARGE, 16.0);
-
-        env.set(BASIC_WIDGET_HEIGHT, 16.0);
-        env.set(WIDE_WIDGET_WIDTH, grid(12.0));
-        env.set(BORDERED_WIDGET_HEIGHT, grid(4.0));
-
-        env.set(TEXTBOX_BORDER_RADIUS, 4.0);
-        env.set(TEXTBOX_BORDER_WIDTH, 1.0);
-        env.set(TEXTBOX_INSETS, Insets::uniform_xy(grid(1.2), grid(1.0)));
-
-        env.set(SCROLLBAR_COLOR, env.get(GREY_300));
-        env.set(SCROLLBAR_BORDER_COLOR, env.get(GREY_300));
-        env.set(SCROLLBAR_MAX_OPACITY, 0.8);
-        env.set(SCROLLBAR_FADE_DELAY, 1500u64);
-        env.set(SCROLLBAR_WIDTH, 6.0);
-        env.set(SCROLLBAR_PAD, 2.0);
-        env.set(SCROLLBAR_RADIUS, 5.0);
-        env.set(SCROLLBAR_EDGE_WIDTH, 1.0);
-
-        env.set(WIDGET_PADDING_VERTICAL, grid(0.5));
-        env.set(WIDGET_PADDING_HORIZONTAL, grid(1.0));
-        env.set(WIDGET_CONTROL_COMPONENT_PADDING, grid(1.0));
-
-        env.set(MENU_BUTTON_BG_ACTIVE, env.get(GREY_500));
-        env.set(MENU_BUTTON_BG_INACTIVE, env.get(GREY_600));
-        env.set(MENU_BUTTON_FG_ACTIVE, env.get(GREY_000));
-        env.set(MENU_BUTTON_FG_INACTIVE, env.get(GREY_100));
+        Theme::Dark => {
+            env.set(BUTTON_LIGHT, env.get(GREY_600));
+            env.set(BUTTON_DARK, env.get(GREY_700));
+            env.set(DISABLED_BUTTON_LIGHT, env.get(GREY_600));
+            env.set(DISABLED_BUTTON_DARK, env.get(GREY_700));
+        }
     }
+
+    env.set(BORDER_LIGHT, env.get(GREY_300));
+    env.set(BORDER_DARK, env.get(GREY_400));
+
+    env.set(SELECTED_TEXT_BACKGROUND_COLOR, env.get(BLUE_200));
+    env.set(SELECTION_TEXT_COLOR, env.get(GREY_700));
+
+    env.set(CURSOR_COLOR, env.get(GREY_000));
+
+    env.set(PROGRESS_BAR_RADIUS, 4.0);
+    env.set(BUTTON_BORDER_RADIUS, 4.0);
+    env.set(BUTTON_BORDER_WIDTH, 1.0);
+
+    env.set(
+        UI_FONT,
+        FontDescriptor::new(FontFamily::SYSTEM_UI).with_size(13.0),
+    );
+    env.set(
+        UI_FONT_MEDIUM,
+        FontDescriptor::new(FontFamily::SYSTEM_UI)
+            .with_size(13.0)
+            .with_weight(FontWeight::MEDIUM),
+    );
+    env.set(
+        UI_FONT_MONO,
+        FontDescriptor::new(FontFamily::MONOSPACE).with_size(13.0),
+    );
+    env.set(TEXT_SIZE_SMALL, 11.0);
+    env.set(TEXT_SIZE_NORMAL, 13.0);
+    env.set(TEXT_SIZE_LARGE, 16.0);
+
+    env.set(BASIC_WIDGET_HEIGHT, 16.0);
+    env.set(WIDE_WIDGET_WIDTH, grid(12.0));
+    env.set(BORDERED_WIDGET_HEIGHT, grid(4.0));
+
+    env.set(TEXTBOX_BORDER_RADIUS, 4.0);
+    env.set(TEXTBOX_BORDER_WIDTH, 1.0);
+    env.set(TEXTBOX_INSETS, Insets::uniform_xy(grid(1.2), grid(1.0)));
+
+    env.set(SCROLLBAR_COLOR, env.get(GREY_300));
+    env.set(SCROLLBAR_BORDER_COLOR, env.get(GREY_300));
+    env.set(SCROLLBAR_MAX_OPACITY, 0.8);
+    env.set(SCROLLBAR_FADE_DELAY, 1500u64);
+    env.set(SCROLLBAR_WIDTH, 6.0);
+    env.set(SCROLLBAR_PAD, 2.0);
+    env.set(SCROLLBAR_RADIUS, 5.0);
+    env.set(SCROLLBAR_EDGE_WIDTH, 1.0);
+
+    env.set(WIDGET_PADDING_VERTICAL, grid(0.5));
+    env.set(WIDGET_PADDING_HORIZONTAL, grid(1.0));
+    env.set(WIDGET_CONTROL_COMPONENT_PADDING, grid(1.0));
+
+    env.set(MENU_BUTTON_BG_ACTIVE, env.get(GREY_500));
+    env.set(MENU_BUTTON_BG_INACTIVE, env.get(GREY_600));
+    env.set(MENU_BUTTON_FG_ACTIVE, env.get(GREY_000));
+    env.set(MENU_BUTTON_FG_INACTIVE, env.get(GREY_100));
 
 }
 

@@ -9,10 +9,11 @@ use druid_material_icons::normal::navigation::ARROW_DROP_DOWN;
 use druid_material_icons::normal::content::ADD;
 use druid_material_icons::normal::content::SAVE;
 use druid_material_icons::normal::navigation::CLOSE;
-use crate::{Account, Database, MainState};
-use crate::gui::account::AccountState;
-use crate::gui::util::{icon_text_button, Indexed, IndexWrapper};
-use crate::gui::widgets::{Icon, WidgetButton};
+use crate::data::{Account, Database};
+use crate::screens::account::AccountState;
+use crate::screens::main::MainState;
+use crate::util::{icon_text_button, Indexed, IndexWrapper};
+use crate::widgets::{Icon, WidgetButton};
 
 pub const OPEN_ACCOUNT: Selector<AccountState> = Selector::new("lol_account_manager_v2.edit.account");
 pub const CLOSE_EDITOR: Selector<(EditState, bool)> = Selector::new("lol_account_manager_v2.edit.close");

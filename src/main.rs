@@ -1,11 +1,13 @@
 #![windows_subsystem = "windows"]
 
-mod gui;
+mod screens;
 mod os;
+mod data;
+mod util;
+mod widgets;
 
 use druid::{AppDelegate, AppLauncher, DelegateCtx, Env, LocalizedString, WindowDesc, WindowHandle, WindowId};
-use crate::gui::{Account, AppState, Database, MainState, SetupState, Settings, Theme, ui};
-
+use crate::screens::{AppState, ui};
 use crate::os::set_window_icon;
 
 pub fn main() {
@@ -16,20 +18,8 @@ pub fn main() {
         .delegate(ProgramDelegate)
         .log_to_console()
         //.launch(AppState::Setup(SetupState::new(Settings::load().unwrap())))
-        .launch(create_state().unwrap())
+        .launch(AppState::load().unwrap())
         .expect("launch failed");
-}
-
-pub fn create_state() -> anyhow::Result<AppState> {
-    let settings = Settings::load()?;
-    Ok(match settings.last_database.clone() {
-        Some(path) => AppState::Main(MainState {
-            settings,
-            filter: "".to_string(),
-            database: Database::load(&path).unwrap()
-        }),
-        None => AppState::Setup(SetupState::new(settings))
-    })
 }
 
 struct ProgramDelegate;

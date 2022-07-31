@@ -4,7 +4,7 @@ use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX
 use druid::widget::{Button, Flex, Label, LineBreaking};
 use druid_material_icons::normal::alert::WARNING_AMBER;
 use crate::AppState;
-use crate::gui::widgets::Icon;
+use crate::widgets::Icon;
 
 pub const POPUP_CLOSE: Selector<PopupState> = Selector::new("lol_account_manager_v2.popup.close");
 

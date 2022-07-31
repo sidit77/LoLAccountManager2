@@ -4,8 +4,8 @@ use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX
 use druid::widget::{Button, Flex, List, TextBox};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::SETTINGS;
-use crate::{Account, Database, Settings};
-use crate::gui::widgets::{WidgetButton, Icon};
+use crate::data::{Account, Database, Settings};
+use crate::widgets::{WidgetButton, Icon};
 
 pub const OPEN_SETTINGS: Selector<MainState> = Selector::new("lol_account_manager_v2.main.settings");
 pub const OPEN_EDITOR: Selector<MainState> = Selector::new("lol_account_manager_v2.main.editor");

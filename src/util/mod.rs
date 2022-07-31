@@ -1,16 +1,17 @@
 mod indexed;
 pub mod string_list;
+pub mod theme;
 
 use std::ops::Not;
-use druid::{Command, Data, Env, Event, EventCtx, FileDialogOptions, Widget, WidgetExt, Lens};
+use druid::{Command, Data, Env, Event, EventCtx, FileDialogOptions, Lens, Widget, WidgetExt};
 use druid::commands::{OPEN_FILE, SAVE_FILE_AS, SHOW_OPEN_PANEL, SHOW_SAVE_PANEL};
 use druid::text::{EditableText, TextStorage};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Controller, CrossAxisAlignment, Either, Flex, Label, Scope, TextBox};
 use druid_material_icons::IconPaths;
-use crate::gui::widgets::{Icon, WidgetButton};
+use crate::widgets::{Icon, WidgetButton};
 
-pub use indexed::{IndexWrapper, Indexed};
+pub use indexed::{Indexed, IndexWrapper};
 
 pub fn icon_text_button<T: Data>(icon: IconPaths, text: &str) -> impl Widget<T> {
     WidgetButton::new(

@@ -5,8 +5,8 @@ use druid::widget::{Button, Controller, CrossAxisAlignment, Flex, Label, Maybe, 
 use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use crate::gui::util::{password_field, path_field, PathOptions};
-use crate::Settings;
+use crate::data::Settings;
+use crate::util::{password_field, path_field, PathOptions};
 
 pub const SETUP_CONFIRM: Selector<SetupState> = Selector::new("lol_account_manager_v2.setup.confirm");
 

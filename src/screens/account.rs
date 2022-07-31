@@ -2,9 +2,9 @@ use druid::{Widget, Lens, Data, WidgetExt, Selector};
 use druid::widget::{CrossAxisAlignment, Flex, MainAxisAlignment};
 use druid_material_icons::normal::navigation::CLOSE;
 use druid_material_icons::normal::action::DONE;
-use crate::Account;
-use crate::gui::edit::EditState;
-use crate::gui::util::{field, icon_text_button, multiline_field, password_field};
+use crate::data::Account;
+use crate::screens::edit::EditState;
+use crate::util::{field, icon_text_button, multiline_field, password_field};
 
 pub const CLOSE_ACCOUNT: Selector<(AccountState, bool)> = Selector::new("lol_account_manager_v2.account.close");
 
