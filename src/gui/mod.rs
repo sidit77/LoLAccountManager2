@@ -6,10 +6,12 @@ mod edit;
 mod account;
 mod setup;
 pub mod theme;
+mod popup;
 
 use std::fs::File;
-use std::ops::IndexMut;
+use std::ops::{Deref, IndexMut};
 use std::path::PathBuf;
+use std::sync::Arc;
 use directories::BaseDirs;
 use serde::{Serialize, Deserialize};
 use druid::{Data, Event, Widget, WidgetExt, Lens, EventCtx, Env};
@@ -18,7 +20,7 @@ use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
 use druid_enums::Matcher;
 use lazy_static::lazy_static;
-use crate::gui::main::{build_main_ui, OPEN_EDITOR, OPEN_SETTINGS};
+use crate::gui::main::{ACCOUNT_LOGIN, build_main_ui, OPEN_EDITOR, OPEN_SETTINGS};
 use crate::gui::settings::{build_settings_ui, SETTINGS_SAVE, SettingsState};
 use crate::gui::edit::{build_edit_ui, CLOSE_EDITOR, OPEN_ACCOUNT, EditState};
 use crate::gui::account::{AccountState, build_account_ui, CLOSE_ACCOUNT, EditMode};
@@ -27,6 +29,7 @@ use crate::gui::setup::{build_setup_ui, SETUP_CONFIRM};
 pub use main::MainState;
 pub use setup::SetupState;
 pub use theme::{Theme};
+use crate::gui::popup::{build_popup_ui, POPUP_CLOSE, PopupState};
 
 lazy_static!{
     static ref CONFIG_PATH: PathBuf = {
@@ -112,7 +115,8 @@ pub enum AppState {
     Main(MainState),
     Editor(EditState),
     Account(AccountState),
-    Setup(SetupState)
+    Setup(SetupState),
+    Popup(PopupState)
 }
 
 impl AppState {
@@ -122,7 +126,8 @@ impl AppState {
             AppState::Main(state) => state.settings.theme,
             AppState::Editor(state) => state.previous.settings.theme,
             AppState::Account(state) => state.previous.previous.settings.theme,
-            AppState::Setup(state) => state.settings.theme
+            AppState::Setup(state) => state.settings.theme,
+            AppState::Popup(state) => state.previous.current_theme()
         }
     }
 }
@@ -134,6 +139,7 @@ pub fn ui() -> impl Widget<AppState> {
         .editor(build_edit_ui())
         .account(build_account_ui())
         .setup(build_setup_ui())
+        .popup(build_popup_ui())
         .controller(AppController)
         .background(BACKGROUND_DARK)
         .env_scope(|env,state: &AppState| state.current_theme().setup(env))
@@ -143,6 +149,15 @@ struct AppController;
 impl Controller<AppState, App> for AppController {
     fn event(&mut self, child: &mut App, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env) {
         match event {
+            Event::Command(cmd) if cmd.is(ACCOUNT_LOGIN) => {
+                let acc = cmd.get_unchecked(ACCOUNT_LOGIN);
+                let new = PopupState {
+                    previous: Arc::new(data.clone()),
+                    message: format!("{:#?}", acc)
+                };
+                *data = AppState::Popup(new);
+                ctx.children_changed()
+            },
             Event::Command(cmd) if cmd.is(OPEN_SETTINGS) => {
                 let main_state= cmd.get_unchecked(OPEN_SETTINGS);
                 *data = AppState::Settings(SettingsState {
@@ -203,6 +218,11 @@ impl Controller<AppState, App> for AppController {
                     database: Default::default()
                 };
                 *data = AppState::Main(new);
+                ctx.children_changed()
+            },
+            Event::Command(cmd) if cmd.is(POPUP_CLOSE) => {
+                let state = cmd.get_unchecked(POPUP_CLOSE);
+                *data = state.previous.deref().clone();
                 ctx.children_changed()
             },
             _ => {}

@@ -9,6 +9,7 @@ use crate::gui::widgets::{WidgetButton, Icon};
 
 pub const OPEN_SETTINGS: Selector<MainState> = Selector::new("lol_account_manager_v2.main.settings");
 pub const OPEN_EDITOR: Selector<MainState> = Selector::new("lol_account_manager_v2.main.editor");
+pub const ACCOUNT_LOGIN: Selector<Account> = Selector::new("lol_account_manager_v2.main.login");
 
 #[derive(Clone, Data, Lens)]
 pub struct MainState {
@@ -73,8 +74,8 @@ pub fn build_main_ui() -> impl Widget<MainState> {
 
 fn item_ui() -> impl Widget<Account> {
     Button::new(|item: &Account, _: &_| item.name.to_string())
-        .on_click(|_ctx, acc: &mut Account, _env| {
-            println!("Login: {:?}", acc);
+        .on_click(|ctx, acc: &mut Account, _env| {
+            ctx.submit_command(ACCOUNT_LOGIN.with(acc.clone()))
         })
         .expand()
         .height(50.0)
