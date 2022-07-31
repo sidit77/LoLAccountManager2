@@ -1,4 +1,3 @@
-use std::ops::Index;
 use druid::{Widget, Lens, LensExt, Data, WidgetExt, lens, Selector, EventCtx, Event, Env};
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{AspectRatioBox, Container, Controller, Flex, Label, List, MainAxisAlignment};
@@ -9,14 +8,13 @@ use druid_material_icons::normal::navigation::ARROW_DROP_DOWN;
 use druid_material_icons::normal::content::ADD;
 use druid_material_icons::normal::content::SAVE;
 use druid_material_icons::normal::navigation::CLOSE;
-use crate::data::{Account, Database};
+use crate::AppState;
+use crate::data::{Account, Database, Theme};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
+use crate::screens::Screen;
 use crate::util::{icon_text_button, Indexed, IndexWrapper};
 use crate::widgets::{Icon, WidgetButton};
-
-pub const OPEN_ACCOUNT: Selector<AccountState> = Selector::new("lol_account_manager_v2.edit.account");
-pub const CLOSE_EDITOR: Selector<(EditState, bool)> = Selector::new("lol_account_manager_v2.edit.close");
 
 const EDIT_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.edit");
 const DELETE_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.delete");
@@ -28,24 +26,60 @@ pub struct EditState {
     pub database: Database
 }
 
-pub fn build_edit_ui() -> impl Widget<EditState> {
+impl From<MainState> for EditState {
+    fn from(ms: MainState) -> Self {
+        EditState {
+            database: ms.database.clone(),
+            previous: ms,
+        }
+    }
+}
+
+impl Into<AppState> for EditState {
+    fn into(self) -> AppState {
+        AppState::Editor(self)
+    }
+}
+
+impl Screen for EditState {
+    fn widget() -> Box<dyn Widget<Self>> {
+        Box::new(build_edit_ui())
+    }
+
+    fn theme(&self) -> Theme {
+        self.previous.theme()
+    }
+
+    fn previous(&self) -> Option<AppState> {
+        Some(self.previous.clone().into())
+    }
+
+    fn make_permanent(&mut self) {
+        self.previous.database = self.database.clone();
+    }
+}
+
+fn build_edit_ui() -> impl Widget<EditState> {
     Flex::column()
         .with_child(Flex::row()
             .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
             .with_flex_child(
                 icon_text_button(ADD, "New")
-                    .on_click(|ctx, state: &mut EditState ,_|
-                        ctx.submit_command(OPEN_ACCOUNT.with(AccountState::new(state.clone())))).expand(), 1.0)
+                    .on_click(|ctx, state: &mut EditState ,_|{
+                        state.open(ctx, AccountState::new(state.clone()))
+                    }).expand(), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
                 icon_text_button(SAVE, "Save")
-                    .on_click(|ctx, state: &mut EditState ,_|
-                        ctx.submit_command(CLOSE_EDITOR.with((state.clone(), true)))).expand(), 1.0)
+                    .on_click(|ctx, state: &mut EditState ,_| {
+                        state.back(ctx, true)
+                    }).expand(), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
                 icon_text_button(CLOSE, "Discard")
-                    .on_click(|ctx, state: &mut EditState ,_|
-                        ctx.submit_command(CLOSE_EDITOR.with((state.clone(), false)))).expand(), 1.0) //Button::new("O").expand()
+                    .on_click(|ctx, state: &mut EditState ,_| {
+                        state.back(ctx, false)
+                    }).expand(), 1.0) //Button::new("O").expand()
             .expand_width()
             .fix_height(50.0))
         .with_spacer(3.0)
@@ -123,25 +157,20 @@ fn item_ui() -> impl Widget<Indexed<Account>> {
 struct ListController;
 impl<W: Widget<EditState>> Controller<EditState, W> for ListController {
     fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut EditState, env: &Env) {
-        match event {
-            Event::Command(cmd) if cmd.is(EDIT_ACCOUNT) => {
-                let index = *cmd.get_unchecked(EDIT_ACCOUNT);
-                let account = data.database.accounts.index(index).clone();
-                ctx.submit_command(OPEN_ACCOUNT.with(AccountState::existing(data.clone(), index, account)));
-            },
-            Event::Command(cmd) if cmd.is(DELETE_ACCOUNT) => {
-                let index = *cmd.get_unchecked(DELETE_ACCOUNT);
+        if let Event::Command(cmd) = event {
+            if let Some(index) = cmd.get(EDIT_ACCOUNT).cloned() {
+                data.open(ctx, AccountState::existing(data.clone(), index));
+            }
+            if let Some(index) = cmd.get(DELETE_ACCOUNT).cloned() {
                 data.database.accounts.remove(index);
-            },
-            Event::Command(cmd) if cmd.is(MOVE_ACCOUNT) => {
-                let (index, offset) = *cmd.get_unchecked(MOVE_ACCOUNT);
+            }
+            if let Some((index, offset)) = cmd.get(MOVE_ACCOUNT).cloned() {
                 let target = match offset.is_negative() {
                     true => index.saturating_sub(offset.unsigned_abs() as usize),
                     false => index.saturating_add(offset.unsigned_abs() as usize),
                 };
                 data.database.accounts.swap(index, target);
             }
-            _ => {}
         }
         child.event(ctx, event, data, env)
     }

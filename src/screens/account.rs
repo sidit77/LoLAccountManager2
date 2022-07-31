@@ -1,12 +1,13 @@
-use druid::{Widget, Lens, Data, WidgetExt, Selector};
+use std::ops::{Index, IndexMut};
+use druid::{Widget, Lens, Data, WidgetExt};
 use druid::widget::{CrossAxisAlignment, Flex, MainAxisAlignment};
 use druid_material_icons::normal::navigation::CLOSE;
 use druid_material_icons::normal::action::DONE;
-use crate::data::Account;
+use crate::AppState;
+use crate::data::{Account, Theme};
 use crate::screens::edit::EditState;
+use crate::screens::Screen;
 use crate::util::{field, icon_text_button, multiline_field, password_field};
-
-pub const CLOSE_ACCOUNT: Selector<(AccountState, bool)> = Selector::new("lol_account_manager_v2.account.close");
 
 #[derive(Copy, Clone, Data)]
 pub enum EditMode {
@@ -21,6 +22,35 @@ pub struct AccountState {
     pub mode: EditMode
 }
 
+impl Into<AppState> for AccountState {
+    fn into(self) -> AppState {
+        AppState::Account(self)
+    }
+}
+
+impl Screen for AccountState {
+    fn widget() -> Box<dyn Widget<Self>> {
+        Box::new(build_account_ui())
+    }
+
+    fn theme(&self) -> Theme {
+        self.previous.theme()
+    }
+
+    fn previous(&self) -> Option<AppState> {
+        Some(self.previous.clone().into())
+    }
+
+    fn make_permanent(&mut self) {
+        match self.mode {
+            EditMode::New => self.previous.database.accounts.push_back(self.account.clone()),
+            EditMode::Existing(index) => {
+                *self.previous.database.accounts.index_mut(index) = self.account.clone()
+            }
+        };
+    }
+}
+
 impl AccountState {
 
     pub fn new(previous: EditState) -> Self {
@@ -31,7 +61,8 @@ impl AccountState {
         }
     }
 
-    pub fn existing(previous: EditState, index: usize, account: Account) -> Self {
+    pub fn existing(previous: EditState, index: usize) -> Self {
+        let account = previous.database.accounts.index(index).clone();
         Self {
             previous,
             account,
@@ -41,7 +72,7 @@ impl AccountState {
 
 }
 
-pub fn build_account_ui() -> impl Widget<AccountState> {
+fn build_account_ui() -> impl Widget<AccountState> {
     Flex::column()
         .with_flex_child(Flex::column()
             .cross_axis_alignment(CrossAxisAlignment::Start)
@@ -58,13 +89,15 @@ pub fn build_account_ui() -> impl Widget<AccountState> {
             .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
             .with_flex_child(
                 icon_text_button(DONE, "Ok")
-                    .on_click(|ctx, state: &mut AccountState, _|
-                        ctx.submit_command(CLOSE_ACCOUNT.with((state.clone(), true)))), 1.0)
+                    .on_click(|ctx, state: &mut AccountState, _|{
+                        state.back(ctx, true)
+                    }), 1.0)
             .with_spacer(3.0)
             .with_flex_child(
                 icon_text_button(CLOSE, "Cancel")
-                    .on_click(|ctx, state: &mut AccountState, _|
-                        ctx.submit_command(CLOSE_ACCOUNT.with((state.clone(),false)))), 1.0)
+                    .on_click(|ctx, state: &mut AccountState, _|{
+                        state.back(ctx, false)
+                    }), 1.0)
             .expand_width()
             .fix_height(50.0))
         .padding(6.0)

@@ -6,32 +6,101 @@ mod settings;
 mod setup;
 
 use crate::data::{Database, Settings, Theme};
-use crate::screens::account::{build_account_ui, AccountState, EditMode, CLOSE_ACCOUNT};
-use crate::screens::edit::{build_edit_ui, EditState, CLOSE_EDITOR, OPEN_ACCOUNT};
-use crate::screens::main::{build_main_ui, MainState, ACCOUNT_LOGIN, OPEN_EDITOR, OPEN_SETTINGS};
-use crate::screens::popup::{build_popup_ui, PopupState, POPUP_CLOSE};
-use crate::screens::settings::{build_settings_ui, SettingsState, SETTINGS_SAVE};
-use crate::screens::setup::{build_setup_ui, SetupState, SETUP_CONFIRM};
+use crate::screens::account::{AccountState};
+use crate::screens::edit::{EditState};
+use crate::screens::main::{ACCOUNT_LOGIN, MainState};
+use crate::screens::popup::{PopupState};
+use crate::screens::settings::{SettingsState};
+use crate::screens::setup::{SetupState};
 use crate::util::theme::setup_theme;
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
-use druid::{Data, Env, Event, EventCtx, Widget, WidgetExt};
+use druid::{Data, Env, Event, EventCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use std::ops::{Deref, IndexMut};
 use std::sync::Arc;
+
+pub const NAVIGATE: Selector<AppState> = Selector::new("lol_account_manager_v2.navigate");
+
+pub trait Screen : Into<AppState> {
+
+    fn back(&mut self, ctx: &mut EventCtx, save: bool) {
+        if save {
+            self.make_permanent()
+        }
+        if let Some(previous) = self.previous() {
+            ctx.submit_command(NAVIGATE.with(previous))
+        }
+    }
+
+    fn open(&self, ctx: &mut EventCtx, screen: impl Into<AppState>) {
+        ctx.submit_command(NAVIGATE.with(screen.into()))
+    }
+
+    fn widget() -> Box<dyn Widget<Self>>;
+
+    fn theme(&self) -> Theme;
+
+    fn previous(&self) -> Option<AppState> {
+        None
+    }
+
+    fn make_permanent(&mut self){
+
+    }
+}
 
 #[derive(Clone, Data, Prism)]
 pub enum AppState {
-    Settings(SettingsState),
     Main(MainState),
+    Settings(SettingsState),
     Editor(EditState),
     Account(AccountState),
     Setup(SetupState),
     Popup(PopupState),
 }
 
+impl Screen for AppState {
+    fn widget() -> Box<dyn Widget<Self>> {
+        Box::new(ui())
+    }
+
+    fn theme(&self) -> Theme {
+        match self {
+            AppState::Main(state) => state.theme(),
+            AppState::Settings(state) => state.theme(),
+            AppState::Editor(state) => state.theme(),
+            AppState::Account(state) => state.theme(),
+            AppState::Setup(state) => state.theme(),
+            AppState::Popup(state) => state.theme()
+        }
+    }
+
+    fn previous(&self) -> Option<AppState> {
+        match self {
+            AppState::Main(state) => state.previous(),
+            AppState::Settings(state) => state.previous(),
+            AppState::Editor(state) => state.previous(),
+            AppState::Account(state) => state.previous(),
+            AppState::Setup(state) => state.previous(),
+            AppState::Popup(state) => state.previous()
+        }
+    }
+
+    fn make_permanent(&mut self) {
+        match self {
+            AppState::Main(state) => state.make_permanent(),
+            AppState::Settings(state) => state.make_permanent(),
+            AppState::Editor(state) => state.make_permanent(),
+            AppState::Account(state) => state.make_permanent(),
+            AppState::Setup(state) => state.make_permanent(),
+            AppState::Popup(state) => state.make_permanent()
+        }
+    }
+}
+
 impl AppState {
+
     pub fn load() -> anyhow::Result<AppState> {
         let settings = Settings::load()?;
         Ok(match settings.last_database.clone() {
@@ -44,114 +113,35 @@ impl AppState {
         })
     }
 
-    fn current_theme(&self) -> Theme {
-        match self {
-            AppState::Settings(state) => state.settings.theme,
-            AppState::Main(state) => state.settings.theme,
-            AppState::Editor(state) => state.previous.settings.theme,
-            AppState::Account(state) => state.previous.previous.settings.theme,
-            AppState::Setup(state) => state.settings.theme,
-            AppState::Popup(state) => state.previous.current_theme(),
-        }
-    }
 }
 
-pub fn ui() -> impl Widget<AppState> {
+fn ui() -> impl Widget<AppState> {
     Switcher::new()
-        .with_variant(AppStateMain, build_main_ui())
-        .with_variant(AppStateSettings, build_settings_ui())
-        .with_variant(AppStateEditor, build_edit_ui())
-        .with_variant(AppStateAccount, build_account_ui())
-        .with_variant(AppStateSetup, build_setup_ui())
-        .with_variant(AppStatePopup, build_popup_ui())
+        .with_variant(AppStateMain, MainState::widget())
+        .with_variant(AppStateSettings, SettingsState::widget())
+        .with_variant(AppStateEditor, EditState::widget())
+        .with_variant(AppStateAccount, AccountState::widget())
+        .with_variant(AppStateSetup, SetupState::widget())
+        .with_variant(AppStatePopup, PopupState::widget())
         .controller(AppController)
         .background(BACKGROUND_DARK)
-        .env_scope(|env, state: &AppState| setup_theme(state.current_theme(), env))
+        .env_scope(|env, state: &AppState| setup_theme(state.theme(), env))
 }
 
 struct AppController;
 impl Controller<AppState, Switcher<AppState>> for AppController {
     fn event(&mut self, child: &mut Switcher<AppState>, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env) {
-        match event {
-            Event::Command(cmd) if cmd.is(ACCOUNT_LOGIN) => {
-                let acc = cmd.get_unchecked(ACCOUNT_LOGIN);
+        if let Event::Command(cmd) = event {
+            if let Some(state) = cmd.get(NAVIGATE).cloned(){
+                *data = state;
+            }
+            if let Some(acc) = cmd.get(ACCOUNT_LOGIN).cloned() {
                 let new = PopupState {
                     previous: Arc::new(data.clone()),
                     message: format!("{:#?}", acc),
                 };
                 *data = AppState::Popup(new);
-                ctx.children_changed()
             }
-            Event::Command(cmd) if cmd.is(OPEN_SETTINGS) => {
-                let main_state = cmd.get_unchecked(OPEN_SETTINGS);
-                *data = AppState::Settings(SettingsState {
-                    previous: main_state.clone(),
-                    settings: main_state.settings.clone(),
-                });
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(OPEN_EDITOR) => {
-                let main_state = cmd.get_unchecked(OPEN_EDITOR);
-                *data = AppState::Editor(EditState {
-                    previous: main_state.clone(),
-                    database: main_state.database.clone(),
-                });
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(SETTINGS_SAVE) => {
-                let settings_state = cmd.get_unchecked(SETTINGS_SAVE);
-                settings_state.settings.save().unwrap();
-                let mut main = settings_state.previous.clone();
-                main.settings = settings_state.settings.clone();
-                *data = AppState::Main(main);
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(CLOSE_EDITOR) => {
-                let (state, save) = cmd.get_unchecked(CLOSE_EDITOR);
-                let mut main = state.previous.clone();
-                if *save {
-                    let db = state.database.clone();
-                    db.save().unwrap();
-                    main.database = db;
-                }
-                *data = AppState::Main(main);
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(OPEN_ACCOUNT) => {
-                let state = cmd.get_unchecked(OPEN_ACCOUNT);
-                *data = AppState::Account(state.clone());
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(CLOSE_ACCOUNT) => {
-                let (state, save) = cmd.get_unchecked(CLOSE_ACCOUNT);
-                let mut new = state.previous.clone();
-                if *save {
-                    match state.mode {
-                        EditMode::New => new.database.accounts.push_back(state.account.clone()),
-                        EditMode::Existing(index) => {
-                            *new.database.accounts.index_mut(index) = state.account.clone()
-                        }
-                    };
-                }
-                *data = AppState::Editor(new);
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(SETUP_CONFIRM) => {
-                let state = cmd.get_unchecked(SETUP_CONFIRM);
-                let new = MainState {
-                    settings: state.settings.clone(),
-                    filter: "".to_string(),
-                    database: Default::default(),
-                };
-                *data = AppState::Main(new);
-                ctx.children_changed()
-            }
-            Event::Command(cmd) if cmd.is(POPUP_CLOSE) => {
-                let state = cmd.get_unchecked(POPUP_CLOSE);
-                *data = state.previous.deref().clone();
-                ctx.children_changed()
-            }
-            _ => {}
         }
         child.event(ctx, event, data, env)
     }

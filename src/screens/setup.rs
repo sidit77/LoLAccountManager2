@@ -1,14 +1,15 @@
 use std::fmt::{Display, Formatter};
-use druid::{Widget, Data, Lens, WidgetExt, Selector, EventCtx, Event, Env, FileDialogOptions, FileSpec};
+use druid::{Widget, Data, Lens, WidgetExt, EventCtx, Event, Env, FileDialogOptions, FileSpec};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Controller, CrossAxisAlignment, Flex, Label, Maybe, RadioGroup};
 use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use crate::data::Settings;
+use crate::AppState;
+use crate::data::{Settings, Theme};
+use crate::screens::main::MainState;
+use crate::screens::Screen;
 use crate::util::{password_field, path_field, PathOptions};
-
-pub const SETUP_CONFIRM: Selector<SetupState> = Selector::new("lol_account_manager_v2.setup.confirm");
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
 
@@ -16,6 +17,22 @@ const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
 pub struct SetupState {
     pub settings: Settings,
     state: ActionState
+}
+
+impl Into<AppState> for SetupState {
+    fn into(self) -> AppState {
+        AppState::Setup(self)
+    }
+}
+
+impl Screen for SetupState {
+    fn widget() -> Box<dyn Widget<Self>> {
+        Box::new(build_setup_ui())
+    }
+
+    fn theme(&self) -> Theme {
+        self.settings.theme
+    }
 }
 
 impl SetupState {
@@ -100,7 +117,7 @@ fn build_import_ui() -> impl Widget<ImportState> {
         .with_child(password_field("Repeat Password:").lens(ImportState::password2))
 }
 
-pub fn build_setup_ui() -> impl Widget<SetupState> {
+fn build_setup_ui() -> impl Widget<SetupState> {
     Flex::column()
         .with_child(
             Flex::column()
@@ -139,8 +156,14 @@ pub fn build_setup_ui() -> impl Widget<SetupState> {
             Button::new("Confirm")
                 .expand_width()
                 .fix_height(50.0)
-                .on_click(|ctx, state: &mut SetupState, _|
-                    ctx.submit_command(SETUP_CONFIRM.with(state.clone())))
+                .on_click(|ctx, state: &mut SetupState, _| {
+                    let new = MainState {
+                        settings: state.settings.clone(),
+                        filter: "".to_string(),
+                        database: Default::default(),
+                    };
+                    state.open(ctx, new);
+                })
                 .disabled_if(|state: &SetupState, _| state.state.check().is_err())
         )
         .padding(6.0)

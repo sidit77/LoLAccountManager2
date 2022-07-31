@@ -1,9 +1,9 @@
-use druid::{Selector, Widget, WidgetExt, Data, Lens};
+use druid::{Widget, WidgetExt, Data, Lens};
 use druid::widget::{Button, Checkbox, CrossAxisAlignment, Flex, Label, RadioGroup};
+use crate::AppState;
 use crate::data::{Settings, Theme};
 use crate::screens::main::MainState;
-
-pub const SETTINGS_SAVE: Selector<SettingsState> = Selector::new("lol_account_manager_v2.settings.back");
+use crate::screens::Screen;
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {
@@ -11,7 +11,40 @@ pub struct SettingsState {
     pub settings: Settings
 }
 
-pub fn build_settings_ui() -> impl Widget<SettingsState> {
+impl From<MainState> for SettingsState {
+    fn from(state: MainState) -> Self {
+        SettingsState {
+            settings: state.settings.clone(),
+            previous: state
+        }
+    }
+}
+
+impl Into<AppState> for SettingsState {
+    fn into(self) -> AppState {
+        AppState::Settings(self)
+    }
+}
+
+impl Screen for SettingsState {
+    fn widget() -> Box<dyn Widget<Self>> {
+        Box::new(build_settings_ui())
+    }
+
+    fn theme(&self) -> Theme {
+        self.settings.theme
+    }
+
+    fn previous(&self) -> Option<AppState> {
+        Some(self.previous.clone().into())
+    }
+
+    fn make_permanent(&mut self) {
+        self.previous.settings = self.settings.clone();
+    }
+}
+
+fn build_settings_ui() -> impl Widget<SettingsState> {
     Flex::column()
         .with_child(Flex::column()
             .cross_axis_alignment(CrossAxisAlignment::Start)
@@ -27,7 +60,7 @@ pub fn build_settings_ui() -> impl Widget<SettingsState> {
                 )
             .lens(SettingsState::settings))
         .with_child(Button::new("back")
-            .on_click(|ctx, state: &mut SettingsState, _| ctx.submit_command(SETTINGS_SAVE.with(state.clone()))))
+            .on_click(|ctx, state: &mut SettingsState, _| state.back(ctx, true)))
         .center()
 
 }

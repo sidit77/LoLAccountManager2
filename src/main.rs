@@ -7,11 +7,11 @@ mod util;
 mod widgets;
 
 use druid::{AppDelegate, AppLauncher, DelegateCtx, Env, LocalizedString, WindowDesc, WindowHandle, WindowId};
-use crate::screens::{AppState, ui};
+use crate::screens::{AppState, Screen};
 use crate::os::set_window_icon;
 
 pub fn main() {
-    let window = WindowDesc::new(ui())
+    let window = WindowDesc::new(AppState::widget())
         .window_size((400.0, 600.0))
         .title(LocalizedString::new("scroll-demo-window-title").with_placeholder("LoL Account Manager"));
     AppLauncher::with_window(window)

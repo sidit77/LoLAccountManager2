@@ -4,11 +4,13 @@ use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX
 use druid::widget::{Button, Flex, List, TextBox};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::SETTINGS;
-use crate::data::{Account, Database, Settings};
+use crate::AppState;
+use crate::data::{Account, Database, Settings, Theme};
+use crate::screens::edit::EditState;
+use crate::screens::Screen;
+use crate::screens::settings::SettingsState;
 use crate::widgets::{WidgetButton, Icon};
 
-pub const OPEN_SETTINGS: Selector<MainState> = Selector::new("lol_account_manager_v2.main.settings");
-pub const OPEN_EDITOR: Selector<MainState> = Selector::new("lol_account_manager_v2.main.editor");
 pub const ACCOUNT_LOGIN: Selector<Account> = Selector::new("lol_account_manager_v2.main.login");
 
 #[derive(Clone, Data, Lens)]
@@ -18,7 +20,31 @@ pub struct MainState {
     pub database: Database
 }
 
-pub fn build_main_ui() -> impl Widget<MainState> {
+impl Into<AppState> for MainState {
+    fn into(self) -> AppState {
+        AppState::Main(self)
+    }
+}
+
+impl Screen for MainState {
+    fn widget() -> Box<dyn Widget<Self>> {
+        Box::new(build_main_ui())
+    }
+
+    fn theme(&self) -> Theme {
+        self.settings.theme
+    }
+
+    fn previous(&self) -> Option<AppState> {
+        None
+    }
+
+    fn make_permanent(&mut self) {
+
+    }
+}
+
+fn build_main_ui() -> impl Widget<MainState> {
     Flex::column()
         .with_child(Flex::row()
             .with_flex_child(
@@ -38,14 +64,16 @@ pub fn build_main_ui() -> impl Widget<MainState> {
             .with_child(WidgetButton::new(Icon::new(EDIT)
                 .expand_height()
                 .padding(3.0))
-                .on_click(|ctx, state: &mut MainState ,_|
-                    ctx.submit_command(OPEN_EDITOR.with(state.clone()))))
+                .on_click(|ctx, state: &mut MainState ,_| {
+                    state.open(ctx, EditState::from(state.clone()))
+                }))
             .with_spacer(3.0)
             .with_child(WidgetButton::new(Icon::new(SETTINGS)
                 .expand_height()
                 .padding(3.0))
-                .on_click(|ctx, state: &mut MainState, _|
-                    ctx.submit_command(OPEN_SETTINGS.with(state.clone()))))
+                .on_click(|ctx, state: &mut MainState, _|{
+                    state.open(ctx, SettingsState::from(state.clone()))
+                }))
             .expand_width()
             .fix_height(50.0))
         .with_spacer(3.0)
