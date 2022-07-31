@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::fs::File;
 use druid::{Data, Lens};
 use druid::im::Vector;
@@ -71,7 +71,7 @@ pub struct Account {
     pub notes: String
 }
 
-#[derive(Debug, Default, Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens)]
 pub struct Database {
     pub accounts: Vector<Account>,
     pub password: String,
@@ -79,6 +79,27 @@ pub struct Database {
 }
 
 impl Database {
+
+    pub fn new(path: &str, password: &str) -> anyhow::Result<Self> {
+        let db = Self {
+            accounts: Default::default(),
+            password: password.to_owned(),
+            path: path.to_owned()
+        };
+        db.save()?;
+        Ok(db)
+    }
+
+    pub fn import(input: &str, output: &str, password: &str) -> anyhow::Result<Self> {
+        let accounts: Vector<Account> = serde_yaml::from_reader(File::open(input)?)?;
+        let db = Self {
+            accounts,
+            password: password.to_owned(),
+            path: output.to_owned()
+        };
+        db.save()?;
+        Ok(db)
+    }
 
     pub fn load(path: &str, password: &str) -> anyhow::Result<Self> {
         let accounts: Vector<Account> = serde_yaml::from_reader(File::open(path)?)?;
@@ -90,7 +111,11 @@ impl Database {
     }
 
     pub fn save(&self) -> anyhow::Result<()> {
-        Ok(serde_yaml::to_writer(File::create(&self.path)?, &self.accounts)?)
+        let path = Path::new(&self.path);
+        if let Some(path) = path.parent() {
+            std::fs::create_dir_all(path)?;
+        }
+        Ok(serde_yaml::to_writer(File::create(path)?, &self.accounts)?)
     }
 
 }

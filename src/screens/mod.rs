@@ -104,11 +104,10 @@ impl AppState {
     pub fn load() -> anyhow::Result<AppState> {
         let settings = Settings::load()?;
         Ok(match settings.last_database.clone() {
-            Some(path) => AppState::Main(MainState {
+            Some(path) => AppState::Main(MainState::new(
                 settings,
-                filter: "".to_string(),
-                database: Database::load(&path, "").unwrap(),
-            }),
+                Database::load(&path, "").unwrap()
+            )),
             None => AppState::Setup(SetupState::new(settings)),
         })
     }

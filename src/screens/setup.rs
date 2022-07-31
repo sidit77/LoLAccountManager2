@@ -1,12 +1,12 @@
 use std::fmt::{Display, Formatter};
-use druid::{Widget, Data, Lens, WidgetExt, EventCtx, Event, Env, FileDialogOptions, FileSpec};
+use druid::{Widget, Data, Lens, WidgetExt, FileDialogOptions, FileSpec};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Controller, CrossAxisAlignment, Flex, Label, Maybe, RadioGroup};
+use druid::widget::{Button, CrossAxisAlignment, Flex, Label, Maybe, RadioGroup};
 use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 use crate::AppState;
-use crate::data::{Settings, Theme};
+use crate::data::{Database, Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::Screen;
 use crate::util::{password_field, path_field, PathOptions};
@@ -157,31 +157,30 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                 .expand_width()
                 .fix_height(50.0)
                 .on_click(|ctx, state: &mut SetupState, _| {
-                    let new = MainState {
-                        settings: state.settings.clone(),
-                        filter: "".to_string(),
-                        database: Default::default(),
+                    let db = Database::try_from(state.state.clone()).unwrap();
+                    let settings = Settings {
+                        last_database: Some(db.path.clone()),
+                        ..state.settings.clone()
                     };
-                    state.open(ctx, new);
+                    settings.save().unwrap();
+                    state.open(ctx, MainState::new(settings, db));
                 })
                 .disabled_if(|state: &SetupState, _| state.state.check().is_err())
         )
         .padding(6.0)
         .expand()
-        .controller(SetupController)
 }
 
-struct SetupController;
-impl<W: Widget<SetupState>> Controller<SetupState, W> for SetupController {
-    fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut SetupState, env: &Env) {
-        //match event {
-        //    Event::Command(cmd) if cmd.is(SETUP_ACTION_CHANGED) => {
-        //        //event.should_propagate_to_hidden();
-        //        //ctx.children_changed();
-        //    }
-        //    _ => {}
-        //}
-        child.event(ctx, event, data, env)
+impl TryFrom<ActionState> for Database {
+
+    type Error = anyhow::Error;
+
+    fn try_from(state: ActionState) -> Result<Self, Self::Error> {
+        match state {
+            ActionState::Create(state) => Database::new(&state.path, &state.password1),
+            ActionState::Open(state) => Database::load(&state.path, &state.password),
+            ActionState::Import(state) => Database::import(&state.input_path, &state.output_path, &state.password1)
+        }
     }
 }
 

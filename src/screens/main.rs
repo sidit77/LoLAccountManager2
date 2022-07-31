@@ -20,6 +20,16 @@ pub struct MainState {
     pub database: Database
 }
 
+impl MainState {
+    pub fn new(settings: Settings, database: Database) -> Self {
+        Self {
+            settings,
+            filter: "".to_string(),
+            database
+        }
+    }
+}
+
 impl Into<AppState> for MainState {
     fn into(self) -> AppState {
         AppState::Main(self)
