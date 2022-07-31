@@ -1,11 +1,12 @@
 mod indexed;
 pub mod string_list;
 
-use druid::{Command, Data, Env, Event, EventCtx, FileDialogOptions, Widget, WidgetExt};
+use std::ops::Not;
+use druid::{Command, Data, Env, Event, EventCtx, FileDialogOptions, Widget, WidgetExt, Lens};
 use druid::commands::{OPEN_FILE, SAVE_FILE_AS, SHOW_OPEN_PANEL, SHOW_SAVE_PANEL};
 use druid::text::{EditableText, TextStorage};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Controller, CrossAxisAlignment, Flex, Label, TextBox};
+use druid::widget::{Button, Controller, CrossAxisAlignment, Either, Flex, Label, Scope, TextBox};
 use druid_material_icons::IconPaths;
 use crate::gui::widgets::{Icon, WidgetButton};
 
@@ -36,14 +37,60 @@ pub fn field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
         .rounded(TEXTBOX_BORDER_RADIUS)
 }
 
+#[derive(Clone, Data, Lens)]
+struct PasswordState<T> {
+    password: T,
+    visible: bool
+}
+
+impl<T> PasswordState<T> {
+    fn new(password: T) -> Self {
+        Self {
+            password,
+            visible: false
+        }
+    }
+}
+
+pub fn ternary<T>(a: bool, v1: T, v2: T) -> T {
+    if a {
+        v1
+    } else {
+        v2
+    }
+}
+
 pub fn password_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
     Flex::column()
         .cross_axis_alignment(CrossAxisAlignment::Start)
         .with_child(Label::new(name))
         .with_spacer(2.0)
         .with_child(
-            TextBox::new()
-                .expand_width()
+            Scope::from_lens(
+                PasswordState::new,
+                PasswordState::password,
+                Flex::row()
+                    .with_flex_child(
+                        Either::new(
+                            |state: &PasswordState<_>, _| state.visible,
+                            TextBox::new()
+                                .lens(PasswordState::password),
+                            TextBox::protected()
+                                .fix_height(34.0)
+                                .lens(PasswordState::password)
+                        )
+                            .expand_width()
+                    , 1.0)
+                    .with_spacer(3.0)
+                    .with_child(
+                        Button::dynamic(|state: &bool, _| ternary(*state, "Hide", "Show").to_string())
+                            .on_click(|_, state: &mut bool, _| *state = state.not())
+                            .fix_width(62.0)
+                            .lens(PasswordState::visible)
+                    )
+            )
+            //TextBox::protected()
+                //.expand_width()
         )
         .padding(3.0)
         .expand_width()
