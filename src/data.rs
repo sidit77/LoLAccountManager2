@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::fs::File;
-use std::time::Instant;
-use age::{Decryptor, Encryptor};
+use std::time::{Duration, Instant};
+use age::{Decryptor, Encryptor, WorkFactor};
 use age::secrecy::Secret;
 use anyhow::bail;
 use druid::{Data, Lens};
@@ -128,11 +128,16 @@ impl Database {
         if let Some(path) = path.parent() {
             std::fs::create_dir_all(path)?;
         }
-        let encryptor = Encryptor::with_user_passphrase(Secret::new(self.password.clone()));
+        let time = Instant::now();
+        let encryptor = Encryptor::with_user_passphrase_and_work_factor(
+            Secret::new(self.password.clone()),
+            WorkFactor::TimeBased(Duration::from_millis(250))
+        );
         let file = File::create(path)?;
         let mut writer = encryptor.wrap_output(file)?;
         serde_yaml::to_writer(&mut writer, &self.accounts)?;
         writer.finish()?;
+        println!("writing time: {}ms", time.elapsed().as_secs_f64() * 1000.0);
         Ok(())
     }
 
