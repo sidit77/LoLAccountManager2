@@ -26,7 +26,7 @@ pub trait Screen : Into<AppState> {
 
     fn back(&mut self, ctx: &mut EventCtx, save: bool) {
         if save {
-            self.make_permanent()
+            self.make_permanent().unwrap();
         }
         if let Some(previous) = self.previous() {
             ctx.submit_command(NAVIGATE.with(previous))
@@ -45,8 +45,8 @@ pub trait Screen : Into<AppState> {
         None
     }
 
-    fn make_permanent(&mut self){
-
+    fn make_permanent(&mut self) -> anyhow::Result<()> {
+        Ok(())
     }
 }
 
@@ -87,7 +87,7 @@ impl Screen for AppState {
         }
     }
 
-    fn make_permanent(&mut self) {
+    fn make_permanent(&mut self) -> anyhow::Result<()> {
         match self {
             AppState::Main(state) => state.make_permanent(),
             AppState::Settings(state) => state.make_permanent(),

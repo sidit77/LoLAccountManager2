@@ -41,13 +41,14 @@ impl Screen for AccountState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) {
+    fn make_permanent(&mut self) -> anyhow::Result<()>{
         match self.mode {
             EditMode::New => self.previous.database.accounts.push_back(self.account.clone()),
             EditMode::Existing(index) => {
                 *self.previous.database.accounts.index_mut(index) = self.account.clone()
             }
         };
+        Ok(())
     }
 }
 

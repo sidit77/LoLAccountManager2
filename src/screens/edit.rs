@@ -54,8 +54,9 @@ impl Screen for EditState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) {
+    fn make_permanent(&mut self) -> anyhow::Result<()>{
         self.previous.database = self.database.clone();
+        self.database.save()
     }
 }
 

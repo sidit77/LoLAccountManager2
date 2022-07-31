@@ -39,8 +39,9 @@ impl Screen for SettingsState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) {
+    fn make_permanent(&mut self) -> anyhow::Result<()> {
         self.previous.settings = self.settings.clone();
+        self.settings.save()
     }
 }
 

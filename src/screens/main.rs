@@ -39,9 +39,6 @@ impl Screen for MainState {
         None
     }
 
-    fn make_permanent(&mut self) {
-
-    }
 }
 
 fn build_main_ui() -> impl Widget<MainState> {
