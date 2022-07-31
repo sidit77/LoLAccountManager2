@@ -5,7 +5,7 @@ use druid::widget::{Button, Flex, List, TextBox};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::action::SETTINGS;
 use crate::AppState;
-use crate::data::{Account, Database, Settings, Theme};
+use crate::data::{Account, Database, Settings};
 use crate::screens::edit::EditState;
 use crate::screens::Screen;
 use crate::screens::settings::SettingsState;
@@ -41,8 +41,8 @@ impl Screen for MainState {
         Box::new(build_main_ui())
     }
 
-    fn theme(&self) -> Theme {
-        self.settings.theme
+    fn settings(&self) -> Settings {
+        self.settings.clone()
     }
 
     fn previous(&self) -> Option<AppState> {

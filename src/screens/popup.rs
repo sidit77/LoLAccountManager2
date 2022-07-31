@@ -5,7 +5,7 @@ use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX
 use druid::widget::{Button, Flex, Label, LineBreaking};
 use druid_material_icons::normal::alert::WARNING_AMBER;
 use crate::AppState;
-use crate::data::Theme;
+use crate::data::{Settings};
 use crate::screens::Screen;
 use crate::widgets::Icon;
 
@@ -26,8 +26,8 @@ impl Screen for PopupState {
         Box::new(build_popup_ui())
     }
 
-    fn theme(&self) -> Theme {
-       self.previous.theme()
+    fn settings(&self) -> Settings {
+       self.previous.settings()
     }
 
     fn previous(&self) -> Option<AppState> {

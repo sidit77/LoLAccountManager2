@@ -5,7 +5,7 @@ mod popup;
 mod settings;
 mod setup;
 
-use crate::data::{Database, Settings, Theme, Password};
+use crate::data::{Database, Settings, Password};
 use crate::screens::account::{AccountState};
 use crate::screens::edit::{EditState};
 use crate::screens::main::{ACCOUNT_LOGIN, MainState};
@@ -15,7 +15,7 @@ use crate::screens::setup::{SetupState};
 use crate::util::theme::setup_theme;
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
-use druid::{Data, Env, Event, EventCtx, Selector, Widget, WidgetExt};
+use druid::{Application, Data, Env, Event, EventCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 use crate::os;
@@ -39,7 +39,7 @@ pub trait Screen : Into<AppState> {
 
     fn widget() -> Box<dyn Widget<Self>>;
 
-    fn theme(&self) -> Theme;
+    fn settings(&self) -> Settings;
 
     fn previous(&self) -> Option<AppState> {
         None
@@ -65,14 +65,14 @@ impl Screen for AppState {
         Box::new(ui())
     }
 
-    fn theme(&self) -> Theme {
+    fn settings(&self) -> Settings {
         match self {
-            AppState::Main(state) => state.theme(),
-            AppState::Settings(state) => state.theme(),
-            AppState::Editor(state) => state.theme(),
-            AppState::Account(state) => state.theme(),
-            AppState::Setup(state) => state.theme(),
-            AppState::Popup(state) => state.theme()
+            AppState::Main(state) => state.settings(),
+            AppState::Settings(state) => state.settings(),
+            AppState::Editor(state) => state.settings(),
+            AppState::Account(state) => state.settings(),
+            AppState::Setup(state) => state.settings(),
+            AppState::Popup(state) => state.settings()
         }
     }
 
@@ -127,7 +127,7 @@ fn ui() -> impl Widget<AppState> {
         .with_variant(AppStatePopup, PopupState::widget())
         .controller(AppController)
         .background(BACKGROUND_DARK)
-        .env_scope(|env, state: &AppState| setup_theme(state.theme(), env))
+        .env_scope(|env, state: &AppState| setup_theme(state.settings().theme, env))
 }
 
 struct AppController;
@@ -144,6 +144,9 @@ impl Controller<AppState, Switcher<AppState>> for AppController {
                 //};
                 //*data = AppState::Popup(new);
                 os::login_account(&acc).unwrap();
+                if data.settings().close_on_login {
+                    Application::global().quit();
+                }
             }
         }
         child.event(ctx, event, data, env)

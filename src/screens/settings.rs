@@ -33,8 +33,8 @@ impl Screen for SettingsState {
         Box::new(build_settings_ui())
     }
 
-    fn theme(&self) -> Theme {
-        self.settings.theme
+    fn settings(&self) -> Settings {
+        self.settings.clone()
     }
 
     fn previous(&self) -> Option<AppState> {

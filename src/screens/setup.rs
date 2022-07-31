@@ -6,7 +6,7 @@ use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 use crate::{AppState};
-use crate::data::{Database, Password, Settings, Theme};
+use crate::data::{Database, Password, Settings};
 use crate::screens::main::MainState;
 use crate::screens::Screen;
 use crate::util::{password_field, path_field, PathOptions};
@@ -32,8 +32,8 @@ impl Screen for SetupState {
         Box::new(build_setup_ui())
     }
 
-    fn theme(&self) -> Theme {
-        self.settings.theme
+    fn settings(&self) -> Settings {
+        self.settings.clone()
     }
 }
 

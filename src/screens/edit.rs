@@ -9,7 +9,7 @@ use druid_material_icons::normal::content::ADD;
 use druid_material_icons::normal::content::SAVE;
 use druid_material_icons::normal::navigation::CLOSE;
 use crate::AppState;
-use crate::data::{Account, Database, Theme};
+use crate::data::{Account, Database, Settings};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
 use crate::screens::Screen;
@@ -46,8 +46,8 @@ impl Screen for EditState {
         Box::new(build_edit_ui())
     }
 
-    fn theme(&self) -> Theme {
-        self.previous.theme()
+    fn settings(&self) -> Settings {
+        self.previous.settings()
     }
 
     fn previous(&self) -> Option<AppState> {

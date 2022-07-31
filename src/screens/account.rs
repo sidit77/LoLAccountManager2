@@ -4,7 +4,7 @@ use druid::widget::{CrossAxisAlignment, Flex, MainAxisAlignment};
 use druid_material_icons::normal::navigation::CLOSE;
 use druid_material_icons::normal::action::DONE;
 use crate::AppState;
-use crate::data::{Account, Theme};
+use crate::data::{Account, Settings};
 use crate::screens::edit::EditState;
 use crate::screens::Screen;
 use crate::util::{field, icon_text_button, multiline_field, password_field};
@@ -33,8 +33,8 @@ impl Screen for AccountState {
         Box::new(build_account_ui())
     }
 
-    fn theme(&self) -> Theme {
-        self.previous.theme()
+    fn settings(&self) -> Settings {
+        self.previous.settings()
     }
 
     fn previous(&self) -> Option<AppState> {
