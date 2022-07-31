@@ -1,14 +1,13 @@
 #![windows_subsystem = "windows"]
 
 mod screens;
-mod os;
 mod data;
 mod util;
 mod widgets;
+pub mod os;
 
 use druid::{AppDelegate, AppLauncher, DelegateCtx, Env, LocalizedString, WindowDesc, WindowHandle, WindowId};
 use crate::screens::{AppState, Screen};
-use crate::os::set_window_icon;
 
 pub fn main() {
     let window = WindowDesc::new(AppState::widget())
@@ -26,6 +25,6 @@ struct ProgramDelegate;
 
 impl AppDelegate<AppState> for ProgramDelegate {
     fn window_added(&mut self, _id: WindowId, handle: WindowHandle, _data: &mut AppState, _env: &Env, _ctx: &mut DelegateCtx) {
-        set_window_icon(&handle);
+        os::set_window_icon(&handle);
     }
 }

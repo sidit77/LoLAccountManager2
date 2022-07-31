@@ -18,7 +18,7 @@ use druid::widget::Controller;
 use druid::{Data, Env, Event, EventCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use std::sync::Arc;
+use crate::os;
 
 pub const NAVIGATE: Selector<AppState> = Selector::new("lol_account_manager_v2.navigate");
 
@@ -138,11 +138,12 @@ impl Controller<AppState, Switcher<AppState>> for AppController {
                 *data = state;
             }
             if let Some(acc) = cmd.get(ACCOUNT_LOGIN).cloned() {
-                let new = PopupState {
-                    previous: Arc::new(data.clone()),
-                    message: format!("{:#?}", acc),
-                };
-                *data = AppState::Popup(new);
+                //let new = PopupState {
+                //    previous: Arc::new(data.clone()),
+                //    message: format!("{:#?}", acc),
+                //};
+                //*data = AppState::Popup(new);
+                os::login_account(&acc).unwrap();
             }
         }
         child.event(ctx, event, data, env)
