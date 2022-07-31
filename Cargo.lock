@@ -1431,7 +1431,6 @@ dependencies = [
  "druid-widget-nursery",
  "keyring",
  "lazy_static",
- "log",
  "pico-args",
  "serde",
  "serde_yaml",
