@@ -3,6 +3,7 @@ use std::fs::File;
 use druid::{Data, Lens};
 use druid::im::Vector;
 use directories::BaseDirs;
+use keyring::Entry;
 use lazy_static::lazy_static;
 use serde::{Serialize, Deserialize};
 
@@ -116,6 +117,23 @@ impl Database {
             std::fs::create_dir_all(path)?;
         }
         Ok(serde_yaml::to_writer(File::create(path)?, &self.accounts)?)
+    }
+
+}
+
+pub struct Password;
+
+impl Password {
+    fn entry() -> Entry {
+        Entry::new("lol_account_manager", "current")
+    }
+
+    pub fn store(password: &str) -> keyring::Result<()> {
+        Self::entry().set_password(password)
+    }
+
+    pub fn get() -> keyring::Result<String> {
+        Self::entry().get_password()
     }
 
 }

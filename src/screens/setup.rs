@@ -5,8 +5,8 @@ use druid::widget::{Button, CrossAxisAlignment, Flex, Label, Maybe, RadioGroup};
 use druid_widget_nursery::ComputedWidget;
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use crate::AppState;
-use crate::data::{Database, Settings, Theme};
+use crate::{AppState};
+use crate::data::{Database, Password, Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::Screen;
 use crate::util::{password_field, path_field, PathOptions};
@@ -162,6 +162,7 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                         last_database: Some(db.path.clone()),
                         ..state.settings.clone()
                     };
+                    Password::store(&db.password).unwrap();
                     settings.save().unwrap();
                     state.open(ctx, MainState::new(settings, db));
                 })

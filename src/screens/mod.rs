@@ -5,7 +5,7 @@ mod popup;
 mod settings;
 mod setup;
 
-use crate::data::{Database, Settings, Theme};
+use crate::data::{Database, Settings, Theme, Password};
 use crate::screens::account::{AccountState};
 use crate::screens::edit::{EditState};
 use crate::screens::main::{ACCOUNT_LOGIN, MainState};
@@ -104,10 +104,13 @@ impl AppState {
     pub fn load() -> anyhow::Result<AppState> {
         let settings = Settings::load()?;
         Ok(match settings.last_database.clone() {
-            Some(path) => AppState::Main(MainState::new(
-                settings,
-                Database::load(&path, "").unwrap()
-            )),
+            Some(path) => {
+                let password = Password::get()?;
+                AppState::Main(MainState::new(
+                    settings,
+                    Database::load(&path, &password)?
+                ))
+            },
             None => AppState::Setup(SetupState::new(settings)),
         })
     }
