@@ -13,6 +13,8 @@ use crate::util::{password_field, path_field, PathOptions};
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
 
+const AGE_YAML: FileSpec = FileSpec::new("encrypted yaml file", &[".yml.age", ".yaml.age"]);
+
 #[derive(Clone, Data, Lens)]
 pub struct SetupState {
     pub settings: Settings,
@@ -66,8 +68,8 @@ struct CreateState {
 
 fn build_create_ui() -> impl Widget<CreateState> {
     let options = FileDialogOptions::new()
-        .allowed_types(vec![YAML])
-        .default_name("database.yml");
+        .allowed_types(vec![AGE_YAML])
+        .default_name("database.yml.age");
     Flex::column()
         .with_child(path_field("Destination:", PathOptions::Save(options)).lens(CreateState::path))
         .with_spacer(3.0)
@@ -84,8 +86,8 @@ struct OpenState {
 
 fn build_open_ui() -> impl Widget<OpenState> {
     let options = FileDialogOptions::new()
-        .allowed_types(vec![YAML])
-        .default_name("database.yml");
+        .allowed_types(vec![AGE_YAML])
+        .default_name("database.yml.age");
     Flex::column()
         .with_child(path_field("Location:", PathOptions::Open(options)).lens(OpenState::path))
         .with_spacer(3.0)
@@ -105,8 +107,8 @@ fn build_import_ui() -> impl Widget<ImportState> {
         .allowed_types(vec![YAML])
         .default_name("database.yml");
     let destination = FileDialogOptions::new()
-        .allowed_types(vec![YAML])
-        .default_name("database.yml");
+        .allowed_types(vec![AGE_YAML])
+        .default_name("database.yml.age");
     Flex::column()
         .with_child(path_field("Source:", PathOptions::Open(source)).lens(ImportState::input_path))
         .with_spacer(3.0)

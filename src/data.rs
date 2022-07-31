@@ -1,5 +1,9 @@
 use std::path::{Path, PathBuf};
 use std::fs::File;
+use std::time::Instant;
+use age::{Decryptor, Encryptor};
+use age::secrecy::Secret;
+use anyhow::bail;
 use druid::{Data, Lens};
 use druid::im::Vector;
 use directories::BaseDirs;
@@ -103,7 +107,15 @@ impl Database {
     }
 
     pub fn load(path: &str, password: &str) -> anyhow::Result<Self> {
-        let accounts: Vector<Account> = serde_yaml::from_reader(File::open(path)?)?;
+        let time = Instant::now();
+        let file = File::open(path)?;
+        let decryptor = match Decryptor::new(file)? {
+            Decryptor::Passphrase(d) => d,
+            _ => bail!("Only password encrypted files are supported!")
+        };
+        let reader = decryptor.decrypt(&Secret::new(password.to_owned()), None)?;
+        let accounts: Vector<Account> = serde_yaml::from_reader(reader)?;
+        println!("loading time: {}ms", time.elapsed().as_secs_f64() * 1000.0);
         Ok(Self {
             accounts,
             password: password.to_owned(),
@@ -116,7 +128,12 @@ impl Database {
         if let Some(path) = path.parent() {
             std::fs::create_dir_all(path)?;
         }
-        Ok(serde_yaml::to_writer(File::create(path)?, &self.accounts)?)
+        let encryptor = Encryptor::with_user_passphrase(Secret::new(self.password.clone()));
+        let file = File::create(path)?;
+        let mut writer = encryptor.wrap_output(file)?;
+        serde_yaml::to_writer(&mut writer, &self.accounts)?;
+        writer.finish()?;
+        Ok(())
     }
 
 }
