@@ -105,7 +105,7 @@ impl AppState {
         let settings = Settings::load()?;
         Ok(match settings.last_database.clone() {
             Some(path) => {
-                let password = Password::get()?;
+                let password = Password::get(&path)?;
                 AppState::Main(MainState::new(
                     settings,
                     Database::load(&path, &password)?

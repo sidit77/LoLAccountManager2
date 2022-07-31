@@ -164,7 +164,7 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                         last_database: Some(db.path.clone()),
                         ..state.settings.clone()
                     };
-                    Password::store(&db.password).unwrap();
+                    Password::store(&db.path, &db.password).unwrap();
                     settings.save().unwrap();
                     state.open(ctx, MainState::new(settings, db));
                 })
