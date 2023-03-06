@@ -146,16 +146,16 @@ impl Database {
 pub struct Password;
 
 impl Password {
-    fn entry(path: &str) -> Entry {
+    fn entry(path: &str) -> keyring::Result<Entry> {
         Entry::new(path, "local")
     }
 
     pub fn store(path: &str, password: &str) -> keyring::Result<()> {
-        Self::entry(path).set_password(password)
+        Self::entry(path)?.set_password(password)
     }
 
     pub fn get(path: &str) -> keyring::Result<String> {
-        Self::entry(path).get_password()
+        Self::entry(path)?.get_password()
     }
 
 }
