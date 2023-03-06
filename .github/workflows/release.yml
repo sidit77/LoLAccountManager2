@@ -1,0 +1,38 @@
+name: release
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: x86_64-pc-windows-msvc
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          target: x86_64-pc-windows-msvc
+
+      - name: Build binary
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --locked --target=x86_64-pc-windows-msvc --color=always --verbose
+          use-cross: false
+          
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./target/x86_64-pc-windows-msvc/release/lol_account_manager_v2.exe
