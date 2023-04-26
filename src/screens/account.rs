@@ -7,9 +7,8 @@ use druid_material_icons::normal::navigation::CLOSE;
 
 use crate::data::{Account, Settings};
 use crate::screens::edit::EditState;
-use crate::screens::Screen;
+use crate::screens::{AppState, Screen};
 use crate::util::{field, icon_text_button, multiline_field, password_field};
-use crate::AppState;
 
 #[derive(Copy, Clone, Data)]
 pub enum EditMode {

@@ -6,7 +6,7 @@ mod setup;
 
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
-use druid::{Application, Data, Env, Event, EventCtx, Selector, Widget, WidgetExt};
+use druid::{Application, Data, Env, Event, EventCtx, Lens, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
@@ -47,6 +47,27 @@ pub trait Screen: Into<AppState> {
         Ok(())
     }
 }
+
+#[derive(Clone, Data, Lens)]
+pub struct MainUi {
+    pub state: AppState
+}
+
+impl MainUi {
+
+    pub fn new() -> MainUi {
+        MainUi {
+            state: AppState::load().unwrap(),
+        }
+    }
+    
+    pub fn widget() -> impl Widget<MainUi> + 'static {
+        AppState::widget()
+            .lens(MainUi::state)
+    }
+
+}
+
 
 #[derive(Clone, Data, Prism)]
 pub enum AppState {
@@ -113,7 +134,6 @@ fn ui() -> impl Widget<AppState> {
         .with_variant(AppStateEditor, EditState::widget())
         .with_variant(AppStateAccount, AccountState::widget())
         .with_variant(AppStateSetup, SetupState::widget())
-        //.with_variant(AppStatePopup, PopupState::widget())
         .controller(AppController)
         .background(BACKGROUND_DARK)
         .env_scope(|env, state: &AppState| setup_theme(state.settings().theme, env))

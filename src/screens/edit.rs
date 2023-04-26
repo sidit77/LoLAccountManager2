@@ -9,10 +9,9 @@ use druid_material_icons::normal::navigation::{ARROW_DROP_DOWN, ARROW_DROP_UP, C
 use crate::data::{Account, Database, Settings};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
-use crate::screens::Screen;
+use crate::screens::{AppState, Screen};
 use crate::util::{icon_text_button, IndexWrapper, Indexed};
 use crate::widgets::{Icon, WidgetButton};
-use crate::AppState;
 
 const EDIT_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.edit");
 const DELETE_ACCOUNT: Selector<usize> = Selector::new("lol_account_manager_v2.edit.delete");

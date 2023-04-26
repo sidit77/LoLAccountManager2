@@ -9,9 +9,8 @@ use druid_widget_nursery::ComputedWidget;
 
 use crate::data::{Database, Password, Settings};
 use crate::screens::main::MainState;
-use crate::screens::Screen;
+use crate::screens::{AppState, Screen};
 use crate::util::{password_field, path_field, PathOptions};
-use crate::AppState;
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
 

@@ -5,8 +5,7 @@ use druid::{Data, Lens, Widget, WidgetExt};
 use crate::data::{Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
-use crate::screens::Screen;
-use crate::AppState;
+use crate::screens::{AppState, Screen};
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {

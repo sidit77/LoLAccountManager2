@@ -8,9 +8,8 @@ use druid_material_icons::normal::image::EDIT;
 use crate::data::{Account, Database, Settings};
 use crate::screens::edit::EditState;
 use crate::screens::settings::SettingsState;
-use crate::screens::Screen;
+use crate::screens::{AppState, Screen};
 use crate::widgets::{Icon, WidgetButton};
-use crate::AppState;
 
 pub const ACCOUNT_LOGIN: Selector<Account> = Selector::new("lol_account_manager_v2.main.login");
 
