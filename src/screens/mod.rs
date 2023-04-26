@@ -7,16 +7,15 @@ mod start;
 mod popup;
 
 use druid::theme::BACKGROUND_DARK;
-use druid::widget::{Controller, Maybe, ZStack};
-use druid::{Application, Data, Env, Event, EventCtx, ExtEventSink, Lens, Widget, WidgetExt};
+use druid::widget::{Maybe, ZStack};
+use druid::{Data, EventCtx, ExtEventSink, Lens, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
 use crate::data::Settings;
-use crate::os;
 use crate::screens::account::AccountState;
 use crate::screens::edit::EditState;
-use crate::screens::main::{MainState, ACCOUNT_LOGIN};
+use crate::screens::main::{MainState};
 use crate::screens::popup::PopupState;
 use crate::screens::settings::SettingsState;
 use crate::screens::setup::SetupState;
@@ -177,21 +176,5 @@ fn ui() -> impl Widget<AppState> {
         .with_variant(AppStateAccount, AccountState::widget())
         .with_variant(AppStateSetup, SetupState::widget())
         .with_variant(AppStateStart, StartupState::widget())
-        .controller(AppController)
         .background(BACKGROUND_DARK)
-}
-
-struct AppController;
-impl Controller<AppState, Switcher<AppState>> for AppController {
-    fn event(&mut self, child: &mut Switcher<AppState>, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env) {
-        if let Event::Command(cmd) = event {
-            if let Some(acc) = cmd.get(ACCOUNT_LOGIN).cloned() {
-                os::login_account(&acc).unwrap();
-                if data.settings().close_on_login {
-                    Application::global().quit();
-                }
-            }
-        }
-        child.event(ctx, event, data, env)
-    }
 }

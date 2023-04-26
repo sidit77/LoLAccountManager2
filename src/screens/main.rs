@@ -1,17 +1,16 @@
 use druid::im::Vector;
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Flex, List, TextBox};
-use druid::{lens, Data, Lens, LensExt, Selector, TextAlignment, Widget, WidgetExt};
+use druid::{lens, Data, Lens, LensExt, TextAlignment, Widget, WidgetExt, Application};
 use druid_material_icons::normal::action::SETTINGS;
 use druid_material_icons::normal::image::EDIT;
 
 use crate::data::{Account, Database, Settings};
+use crate::os;
 use crate::screens::edit::EditState;
 use crate::screens::settings::SettingsState;
-use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator, Screen};
 use crate::widgets::{Icon, WidgetButton};
-
-pub const ACCOUNT_LOGIN: Selector<Account> = Selector::new("lol_account_manager_v2.main.login");
 
 #[derive(Clone, Data, Lens)]
 pub struct MainState {
@@ -110,7 +109,14 @@ fn build_main_ui() -> impl Widget<MainState> {
 
 fn item_ui() -> impl Widget<Account> {
     Button::new(|item: &Account, _: &_| item.name.to_string())
-        .on_click(|ctx, acc: &mut Account, _env| ctx.submit_command(ACCOUNT_LOGIN.with(acc.clone())))
+        .on_click(|ctx, acc: &mut Account, _| {
+            os::login_account(acc).unwrap();
+            ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+                if ui.state.settings().close_on_login {
+                    Application::global().quit();
+                }
+            });
+        })
         .expand()
         .height(50.0)
 }
