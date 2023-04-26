@@ -69,10 +69,6 @@ impl Screen for AccountState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) -> anyhow::Result<()> {
-        self.save();
-        Ok(())
-    }
 }
 
 impl AccountState {

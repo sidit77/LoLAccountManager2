@@ -30,7 +30,7 @@ pub enum Theme {
     Dark
 }
 
-#[derive(Debug, Default, Clone, Data, Lens, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Data, Lens, Serialize, Deserialize)]
 pub struct Settings {
     pub close_on_login: bool,
     pub theme: Theme,

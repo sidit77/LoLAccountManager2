@@ -5,12 +5,23 @@ use druid::{Data, Lens, Widget, WidgetExt};
 use crate::data::{Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
-use crate::screens::{AppState, Screen};
+use crate::screens::{AppState, Navigator, Screen};
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {
     pub previous: MainState,
     pub settings: Settings
+}
+
+impl SettingsState {
+
+    fn save(&mut self) {
+        if self.previous.settings != self.settings {
+            self.previous.settings = self.settings.clone();
+            self.settings.save().unwrap()
+        }
+    }
+
 }
 
 impl From<MainState> for SettingsState {
@@ -41,10 +52,6 @@ impl Screen for SettingsState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) -> anyhow::Result<()> {
-        self.previous.settings = self.settings.clone();
-        self.settings.save()
-    }
 }
 
 fn build_settings_ui() -> impl Widget<SettingsState> {
@@ -63,7 +70,10 @@ fn build_settings_ui() -> impl Widget<SettingsState> {
         .with_flex_spacer(1.0)
         .with_child(
             Button::new("Back")
-                .on_click(|ctx, state: &mut SettingsState, _| state.back(ctx, true))
+                .on_click(|ctx, state: &mut SettingsState, _| {
+                    state.save();
+                    ctx.back();
+                })
                 .expand_width()
                 .fix_height(50.0)
         )
@@ -105,7 +115,7 @@ fn database_ui() -> impl Widget<SettingsState> {
                 .with_flex_child(
                     Button::new("Change")
                         .on_click(|ctx, state: &mut SettingsState, _| {
-                            state.make_permanent().unwrap();
+                            state.save();
                             state.open(ctx, SetupState::new(state.settings.clone()));
                         })
                         .expand_width(),

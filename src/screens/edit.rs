@@ -61,10 +61,6 @@ impl Screen for EditState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) -> anyhow::Result<()> {
-        self.previous.database = self.database.clone();
-        self.database.save()
-    }
 }
 
 fn build_edit_ui() -> impl Widget<EditState> {
@@ -100,7 +96,7 @@ fn build_edit_ui() -> impl Widget<EditState> {
                 .with_flex_child(
                     icon_text_button(CLOSE, "Discard")
                         .on_click(|ctx, state: &mut EditState, _| match state.unsaved_changes() {
-                            false => state.back(ctx, false),
+                            false => ctx.back(),
                             true => ctx.open_popup(PopupState::Leave(()))
                         })
                         .expand(),

@@ -26,14 +26,6 @@ use crate::util::theme::setup_theme;
 pub const NAVIGATE: Selector<AppState> = Selector::new("lol_account_manager_v2.navigate");
 
 pub trait Screen: Into<AppState> {
-    fn back(&mut self, ctx: &mut EventCtx, save: bool) {
-        if save {
-            self.make_permanent().unwrap();
-        }
-        if let Some(previous) = self.previous() {
-            ctx.submit_command(NAVIGATE.with(previous))
-        }
-    }
 
     fn open(&self, ctx: &mut EventCtx, screen: impl Into<AppState>) {
         ctx.submit_command(NAVIGATE.with(screen.into()))
@@ -51,9 +43,6 @@ pub trait Screen: Into<AppState> {
         None
     }
 
-    fn make_permanent(&mut self) -> anyhow::Result<()> {
-        Ok(())
-    }
 }
 
 pub trait Navigator {
@@ -174,16 +163,6 @@ impl Screen for AppState {
         }
     }
 
-    fn make_permanent(&mut self) -> anyhow::Result<()> {
-        match self {
-            AppState::Main(state) => state.make_permanent(),
-            AppState::Settings(state) => state.make_permanent(),
-            AppState::Editor(state) => state.make_permanent(),
-            AppState::Account(state) => state.make_permanent(),
-            AppState::Setup(state) => state.make_permanent(),
-            AppState::Start(state) => state.make_permanent()
-        }
-    }
 }
 
 fn ui() -> impl Widget<AppState> {
