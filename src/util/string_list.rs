@@ -4,7 +4,7 @@ use serde::de::{SeqAccess, Visitor};
 use serde::ser::SerializeSeq;
 use serde::{Deserializer, Serializer};
 
-pub fn serialize<S: Serializer>(data: &String, s: S) -> Result<S::Ok, S::Error> {
+pub fn serialize<S: Serializer>(data: &str, s: S) -> Result<S::Ok, S::Error> {
     let mut seq = s.serialize_seq(None)?;
     for line in data.lines() {
         seq.serialize_element(line)?;

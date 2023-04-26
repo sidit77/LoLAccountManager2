@@ -22,9 +22,9 @@ pub struct AccountState {
     pub mode: EditMode
 }
 
-impl Into<AppState> for AccountState {
-    fn into(self) -> AppState {
-        AppState::Account(self)
+impl From<AccountState> for AppState {
+    fn from(value: AccountState) -> Self {
+        AppState::Account(value)
     }
 }
 

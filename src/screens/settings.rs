@@ -22,9 +22,9 @@ impl From<MainState> for SettingsState {
     }
 }
 
-impl Into<AppState> for SettingsState {
-    fn into(self) -> AppState {
-        AppState::Settings(self)
+impl From<SettingsState> for AppState {
+    fn from(value: SettingsState) -> Self {
+        Self::Settings(value)
     }
 }
 

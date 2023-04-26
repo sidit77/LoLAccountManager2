@@ -15,9 +15,9 @@ pub struct PopupState {
     pub message: String
 }
 
-impl Into<AppState> for PopupState {
-    fn into(self) -> AppState {
-        AppState::Popup(self)
+impl From<PopupState> for AppState {
+    fn from(value: PopupState) -> Self {
+        Self::Popup(value)
     }
 }
 

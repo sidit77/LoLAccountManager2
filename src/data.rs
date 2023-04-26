@@ -24,16 +24,11 @@ lazy_static!{
     };
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Data, Serialize, Deserialize)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Data, Serialize, Deserialize)]
 pub enum Theme {
+    #[default]
     Light,
     Dark
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Theme::Light
-    }
 }
 
 

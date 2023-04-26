@@ -1,4 +1,4 @@
-use druid::{Selector, Data, Lens, Widget, WidgetExt, TextAlignment, lens, LensExt, theme};
+use druid::{Selector, Data, Lens, Widget, WidgetExt, TextAlignment, lens, LensExt};
 use druid::im::Vector;
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Flex, List, TextBox};
@@ -30,9 +30,9 @@ impl MainState {
     }
 }
 
-impl Into<AppState> for MainState {
-    fn into(self) -> AppState {
-        AppState::Main(self)
+impl From<MainState> for AppState {
+    fn from(value: MainState) -> Self {
+        Self::Main(value)
     }
 }
 
@@ -59,7 +59,7 @@ fn build_main_ui() -> impl Widget<MainState> {
                 .with_text_alignment(TextAlignment::Center)
                 .with_placeholder("Search...")
                 .lens(MainState::filter)
-                .env_scope(|env,_| env.set(theme::TEXTBOX_BORDER_WIDTH, 0.0))
+                .env_scope(|env,_| env.set(TEXTBOX_BORDER_WIDTH, 0.0))
                 .expand_width()
                 .center()
                 .expand()

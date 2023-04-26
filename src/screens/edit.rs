@@ -35,9 +35,9 @@ impl From<MainState> for EditState {
     }
 }
 
-impl Into<AppState> for EditState {
-    fn into(self) -> AppState {
-        AppState::Editor(self)
+impl From<EditState> for AppState {
+    fn from(value: EditState) -> Self {
+        AppState::Editor(value)
     }
 }
 

@@ -21,9 +21,9 @@ pub struct SetupState {
     state: ActionState
 }
 
-impl Into<AppState> for SetupState {
-    fn into(self) -> AppState {
-        AppState::Setup(self)
+impl From<SetupState> for AppState {
+    fn from(value: SetupState) -> Self {
+        Self::Setup(value)
     }
 }
 
