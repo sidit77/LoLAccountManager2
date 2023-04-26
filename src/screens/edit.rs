@@ -7,7 +7,7 @@ use druid_material_icons::normal::content::{ADD, SAVE};
 use druid_material_icons::normal::image::EDIT;
 use druid_material_icons::normal::navigation::{ARROW_DROP_DOWN, ARROW_DROP_UP, CLOSE};
 
-use crate::data::{Account, Database, Settings};
+use crate::data::{Account, Database};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
 use crate::screens::{AppState, Navigator, Screen};
@@ -53,10 +53,6 @@ impl From<EditState> for AppState {
 }
 
 impl Screen for EditState {
-
-    fn settings(&self) -> Settings {
-        self.previous.settings()
-    }
 
     fn previous(&self) -> Option<AppState> {
         Some(self.previous.clone().into())

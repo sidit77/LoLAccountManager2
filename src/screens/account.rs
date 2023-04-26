@@ -5,7 +5,7 @@ use druid::{Data, Lens, Widget, WidgetExt};
 use druid_material_icons::normal::action::DONE;
 use druid_material_icons::normal::navigation::CLOSE;
 
-use crate::data::{Account, Settings};
+use crate::data::Account;
 use crate::screens::edit::EditState;
 use crate::screens::{AppState, Navigator, Screen};
 use crate::screens::popup::PopupState;
@@ -61,11 +61,6 @@ impl From<AccountState> for AppState {
 }
 
 impl Screen for AccountState {
-
-
-    fn settings(&self) -> Settings {
-        self.previous.settings()
-    }
 
     fn previous(&self) -> Option<AppState> {
         Some(self.previous.clone().into())

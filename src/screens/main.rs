@@ -5,7 +5,7 @@ use druid::{lens, Data, Lens, LensExt, TextAlignment, Widget, WidgetExt, Applica
 use druid_material_icons::normal::action::SETTINGS;
 use druid_material_icons::normal::image::EDIT;
 
-use crate::data::{Account, Database, Settings};
+use crate::data::{Account, Database};
 use crate::os;
 use crate::screens::edit::EditState;
 use crate::screens::settings::SettingsState;
@@ -14,15 +14,13 @@ use crate::widgets::{Icon, WidgetButton};
 
 #[derive(Clone, Data, Lens)]
 pub struct MainState {
-    pub settings: Settings,
     pub filter: String,
     pub database: Database
 }
 
 impl MainState {
-    pub fn new(settings: Settings, database: Database) -> Self {
+    pub fn new(database: Database) -> Self {
         Self {
-            settings,
             filter: "".to_string(),
             database
         }
@@ -40,10 +38,6 @@ impl From<MainState> for AppState {
 }
 
 impl Screen for MainState {
-
-    fn settings(&self) -> Settings {
-        self.settings.clone()
-    }
 
     fn previous(&self) -> Option<AppState> {
         None
@@ -77,7 +71,15 @@ fn build_main_ui() -> impl Widget<MainState> {
                 .with_spacer(3.0)
                 .with_child(
                     WidgetButton::new(Icon::new(SETTINGS).expand_height().padding(3.0))
-                        .on_click(|ctx, state: &mut MainState, _| ctx.open(SettingsState::from(state.clone())))
+                        .on_click(|ctx, state: &mut MainState, _| {
+                            let state = state.clone();
+                            ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+                                ui.open(SettingsState {
+                                    previous: state,
+                                    settings: ui.settings.clone(),
+                                })
+                            })
+                        })
                 )
                 .expand_width()
                 .fix_height(50.0)
@@ -113,7 +115,7 @@ fn item_ui() -> impl Widget<Account> {
         .on_click(|ctx, acc: &mut Account, _| {
             os::login_account(acc).unwrap();
             ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
-                if ui.state.settings().close_on_login {
+                if ui.settings.close_on_login {
                     Application::global().quit();
                 }
             });

@@ -1,11 +1,11 @@
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Checkbox, CrossAxisAlignment, Flex, Label, LineBreaking, RadioGroup};
-use druid::{Data, Lens, Widget, WidgetExt};
+use druid::{Data, EventCtx, Lens, Widget, WidgetExt};
 
 use crate::data::{Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
-use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator, Screen};
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {
@@ -15,26 +15,18 @@ pub struct SettingsState {
 
 impl SettingsState {
 
-    fn save(&mut self) {
-        if self.previous.settings != self.settings {
-            self.previous.settings = self.settings.clone();
-            self.settings.save().unwrap()
-        }
+    fn save(&self, ctx: &EventCtx) {
+        let settings = self.settings.clone();
+        ctx.get_external_handle().add_idle_callback(move |ui: &mut MainUi| {
+            settings.save().unwrap();
+            ui.settings = settings;
+        })
     }
 
     pub fn widget() -> impl Widget<Self> + 'static {
         build_settings_ui()
     }
 
-}
-
-impl From<MainState> for SettingsState {
-    fn from(state: MainState) -> Self {
-        SettingsState {
-            settings: state.settings.clone(),
-            previous: state
-        }
-    }
 }
 
 impl From<SettingsState> for AppState {
@@ -44,10 +36,6 @@ impl From<SettingsState> for AppState {
 }
 
 impl Screen for SettingsState {
-
-    fn settings(&self) -> Settings {
-        self.settings.clone()
-    }
 
     fn previous(&self) -> Option<AppState> {
         Some(self.previous.clone().into())
@@ -72,7 +60,7 @@ fn build_settings_ui() -> impl Widget<SettingsState> {
         .with_child(
             Button::new("Back")
                 .on_click(|ctx, state: &mut SettingsState, _| {
-                    state.save();
+                    state.save(ctx);
                     ctx.back();
                 })
                 .expand_width()
@@ -116,8 +104,8 @@ fn database_ui() -> impl Widget<SettingsState> {
                 .with_flex_child(
                     Button::new("Change")
                         .on_click(|ctx, state: &mut SettingsState, _| {
-                            state.save();
-                            ctx.open(SetupState::new(state.settings.clone()));
+                            state.save(ctx);
+                            ctx.open(SetupState::new());
                         })
                         .expand_width(),
                     1.0

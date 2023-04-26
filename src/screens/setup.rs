@@ -7,9 +7,9 @@ use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 use druid_widget_nursery::ComputedWidget;
 
-use crate::data::{Database, Password, Settings};
+use crate::data::{Database, Password};
 use crate::screens::main::MainState;
-use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator, Screen};
 use crate::util::{password_field, path_field, PathOptions};
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
@@ -18,7 +18,6 @@ const AGE_YAML: FileSpec = FileSpec::new("encrypted yaml file", &[".yml.age", ".
 
 #[derive(Clone, Data, Lens)]
 pub struct SetupState {
-    pub settings: Settings,
     state: ActionState
 }
 
@@ -37,15 +36,12 @@ impl From<SetupState> for AppState {
 }
 
 impl Screen for SetupState {
-    fn settings(&self) -> Settings {
-        self.settings.clone()
-    }
+
 }
 
 impl SetupState {
-    pub fn new(settings: Settings) -> Self {
+    pub fn new() -> Self {
         Self {
-            settings,
             state: ActionState::Create(Default::default())
         }
     }
@@ -168,13 +164,13 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                 .fix_height(50.0)
                 .on_click(|ctx, state: &mut SetupState, _| {
                     let db = Database::try_from(state.state.clone()).unwrap();
-                    let settings = Settings {
-                        last_database: Some(db.path.clone()),
-                        ..state.settings.clone()
-                    };
+                    let path = db.path.clone();
+                    ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+                        ui.settings.last_database = Some(path);
+                        ui.settings.save().unwrap();
+                    });
                     Password::store(&db.path, &db.password).unwrap();
-                    settings.save().unwrap();
-                    ctx.open(MainState::new(settings, db));
+                    ctx.open(MainState::new( db));
                 })
                 .disabled_if(|state: &SetupState, _| state.state.check().is_err())
         )

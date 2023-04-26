@@ -12,7 +12,7 @@ use druid::{Data, EventCtx, ExtEventSink, Lens, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
-use crate::data::Settings;
+use crate::data::{Settings, Theme};
 use crate::screens::account::AccountState;
 use crate::screens::edit::EditState;
 use crate::screens::main::{MainState};
@@ -23,8 +23,6 @@ use crate::screens::start::StartupState;
 use crate::util::theme::setup_theme;
 
 pub trait Screen: Into<AppState> {
-
-    fn settings(&self) -> Settings;
 
     fn previous(&self) -> Option<AppState> {
         None
@@ -101,6 +99,7 @@ impl Navigator for &EventCtx<'_, '_> {
 
 #[derive(Clone, Data, Lens)]
 pub struct MainUi {
+    pub settings: Settings,
     pub state: AppState,
     pub popup: Option<PopupState>
 }
@@ -108,12 +107,21 @@ pub struct MainUi {
 impl MainUi {
 
     pub fn new() -> MainUi {
+        let settings = Settings::load().unwrap();
         MainUi {
+            settings,
             state: StartupState::new().into(),//AppState::load().unwrap(),
             popup: None,
         }
     }
-    
+
+    fn current_theme(&self) -> Theme {
+        match &self.state {
+            AppState::Settings(state) => state.settings.theme,
+            _ => self.settings.theme
+        }
+    }
+
     pub fn widget() -> impl Widget<MainUi> + 'static {
         let main = AppState::widget()
             .lens(MainUi::state);
@@ -121,7 +129,7 @@ impl MainUi {
             .lens(MainUi::popup);
         ZStack::new(main)
             .with_centered_child(popup)
-            .env_scope(|env, ui: &MainUi| setup_theme(ui.state.settings().theme, env))
+            .env_scope(|env, ui: &MainUi| setup_theme(ui.current_theme(), env))
     }
 
 }
@@ -152,17 +160,6 @@ impl AppState {
 }
 
 impl Screen for AppState {
-
-    fn settings(&self) -> Settings {
-        match self {
-            AppState::Main(state) => state.settings(),
-            AppState::Settings(state) => state.settings(),
-            AppState::Editor(state) => state.settings(),
-            AppState::Account(state) => state.settings(),
-            AppState::Setup(state) => state.settings(),
-            AppState::Start(state) => state.settings()
-        }
-    }
 
     fn previous(&self) -> Option<AppState> {
         match self {
