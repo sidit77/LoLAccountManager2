@@ -1,3 +1,4 @@
+use std::thread::spawn;
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{AspectRatioBox, Container, Controller, Flex, Label, List, MainAxisAlignment};
 use druid::{lens, Data, Env, Event, EventCtx, Lens, LensExt, Selector, Widget, WidgetExt};
@@ -80,10 +81,18 @@ fn build_edit_ui() -> impl Widget<EditState> {
                 .with_spacer(3.0)
                 .with_flex_child(
                     icon_text_button(SAVE, "Save")
-                        .on_click(|ctx, state: &mut EditState, _| match state.unsaved_changes() {
-                            false => state.back(ctx, false),
-                            true => state.back(ctx, true)
+                        .on_click(|ctx, state: &mut EditState, _| {
+                            ctx.open_popup(PopupState::Saving(()));
+                            let handle = ctx.get_external_handle();
+                            let db = state.database.clone();
+                            state.previous.database = db.clone();
+                            spawn(move || {
+                                db.save().unwrap();
+                                handle.close_popup();
+                                handle.back();
+                            });
                         })
+                        .disabled_if(|state: &EditState, _| !state.unsaved_changes())
                         .expand(),
                     1.0
                 )

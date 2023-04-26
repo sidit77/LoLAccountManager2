@@ -8,7 +8,7 @@ mod popup;
 
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::{Controller, Maybe, ZStack};
-use druid::{Application, Data, Env, Event, EventCtx, Lens, LifeCycleCtx, Selector, Widget, WidgetExt};
+use druid::{Application, Data, Env, Event, EventCtx, ExtEventSink, Lens, LifeCycleCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
@@ -57,33 +57,55 @@ pub trait Screen: Into<AppState> {
 }
 
 pub trait Navigator {
-    fn close_popup(&self);
-    fn open_popup(&self, popup: PopupState);
-    fn back(&self);
+    fn close_popup(self);
+    fn open_popup(self, popup: PopupState);
+    fn back(self);
 }
 
-impl Navigator for EventCtx<'_, '_> {
-    fn close_popup(&self) {
-        self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
-            if let Some(popup) = ui.popup.take() {
-                popup.close()
-            }
-        })
+impl Navigator for &mut MainUi {
+    fn close_popup(self) {
+        if let Some(popup) = self.popup.take() {
+            popup.close()
+        }
     }
 
-    fn open_popup(&self, popup: PopupState) {
-        self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
-            debug_assert!(ui.popup.is_none());
-            ui.popup = Some(popup);
-        })
+    fn open_popup(self, popup: PopupState) {
+        debug_assert!(self.popup.is_none());
+        self.popup = Some(popup);
     }
 
-    fn back(&self) {
-        self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
-            if let Some(previous) = ui.state.previous() {
-                ui.state = previous;
-            }
-        })
+    fn back(self) {
+        if let Some(previous) = self.state.previous() {
+            self.state = previous;
+        }
+    }
+}
+
+impl Navigator for &ExtEventSink {
+    fn close_popup(self) {
+        self.add_idle_callback(|ui: &mut MainUi| ui.close_popup())
+    }
+
+    fn open_popup(self, popup: PopupState) {
+        self.add_idle_callback(|ui: &mut MainUi| ui.open_popup(popup))
+    }
+
+    fn back(self) {
+        self.add_idle_callback(|ui: &mut MainUi| ui.back())
+    }
+}
+
+impl Navigator for &EventCtx<'_, '_> {
+    fn close_popup(self) {
+        self.get_external_handle().close_popup()
+    }
+
+    fn open_popup(self, popup: PopupState) {
+        self.get_external_handle().open_popup(popup)
+    }
+
+    fn back(self) {
+        self.get_external_handle().back()
     }
 }
 
