@@ -1,17 +1,18 @@
-use std::path::{Path, PathBuf};
 use std::fs::File;
+use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
-use age::{Decryptor, Encryptor, WorkFactor};
+
 use age::secrecy::Secret;
+use age::{Decryptor, Encryptor, WorkFactor};
 use anyhow::bail;
-use druid::{Data, Lens};
-use druid::im::Vector;
 use directories::BaseDirs;
+use druid::im::Vector;
+use druid::{Data, Lens};
 use keyring::Entry;
 use lazy_static::lazy_static;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-lazy_static!{
+lazy_static! {
     static ref CONFIG_PATH: PathBuf = {
         let mut pargs = pico_args::Arguments::from_env();
         match pargs.opt_value_from_str("--config-path").unwrap() {
@@ -31,7 +32,6 @@ pub enum Theme {
     Dark
 }
 
-
 #[derive(Debug, Default, Clone, Data, Lens, Serialize, Deserialize)]
 pub struct Settings {
     pub close_on_login: bool,
@@ -40,7 +40,6 @@ pub struct Settings {
 }
 
 impl Settings {
-
     pub fn load() -> anyhow::Result<Self> {
         Ok(match CONFIG_PATH.exists() {
             true => serde_yaml::from_reader(File::open(&*CONFIG_PATH)?)?,
@@ -59,7 +58,6 @@ impl Settings {
         serde_yaml::to_writer(File::create(&*CONFIG_PATH)?, self)?;
         Ok(())
     }
-
 }
 
 #[derive(Debug, Clone, Default, Data, Lens, Serialize, Deserialize)]
@@ -75,11 +73,10 @@ pub struct Account {
 pub struct Database {
     pub accounts: Vector<Account>,
     pub password: String,
-    pub path: String,
+    pub path: String
 }
 
 impl Database {
-
     pub fn new(path: &str, password: &str) -> anyhow::Result<Self> {
         let db = Self {
             accounts: Default::default(),
@@ -124,10 +121,8 @@ impl Database {
             std::fs::create_dir_all(path)?;
         }
         let time = Instant::now();
-        let encryptor = Encryptor::with_user_passphrase_and_work_factor(
-            Secret::new(self.password.clone()),
-            WorkFactor::TimeBased(Duration::from_millis(250))
-        );
+        let encryptor =
+            Encryptor::with_user_passphrase_and_work_factor(Secret::new(self.password.clone()), WorkFactor::TimeBased(Duration::from_millis(250)));
         let file = File::create(path)?;
         let mut writer = encryptor.wrap_output(file)?;
         serde_yaml::to_writer(&mut writer, &self.accounts)?;
@@ -135,7 +130,6 @@ impl Database {
         println!("writing time: {}ms", time.elapsed().as_secs_f64() * 1000.0);
         Ok(())
     }
-
 }
 
 pub struct Password;
@@ -152,5 +146,4 @@ impl Password {
     pub fn get(path: &str) -> keyring::Result<String> {
         Self::entry(path)?.get_password()
     }
-
 }

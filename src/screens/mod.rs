@@ -5,25 +5,25 @@ mod popup;
 mod settings;
 mod setup;
 
-use crate::data::{Database, Settings, Password};
-use crate::screens::account::{AccountState};
-use crate::screens::edit::{EditState};
-use crate::screens::main::{ACCOUNT_LOGIN, MainState};
-use crate::screens::popup::{PopupState};
-use crate::screens::settings::{SettingsState};
-use crate::screens::setup::{SetupState};
-use crate::util::theme::setup_theme;
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
 use druid::{Application, Data, Env, Event, EventCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
+
+use crate::data::{Database, Password, Settings};
 use crate::os;
+use crate::screens::account::AccountState;
+use crate::screens::edit::EditState;
+use crate::screens::main::{MainState, ACCOUNT_LOGIN};
+use crate::screens::popup::PopupState;
+use crate::screens::settings::SettingsState;
+use crate::screens::setup::SetupState;
+use crate::util::theme::setup_theme;
 
 pub const NAVIGATE: Selector<AppState> = Selector::new("lol_account_manager_v2.navigate");
 
-pub trait Screen : Into<AppState> {
-
+pub trait Screen: Into<AppState> {
     fn back(&mut self, ctx: &mut EventCtx, save: bool) {
         if save {
             self.make_permanent().unwrap();
@@ -57,7 +57,7 @@ pub enum AppState {
     Editor(EditState),
     Account(AccountState),
     Setup(SetupState),
-    Popup(PopupState),
+    Popup(PopupState)
 }
 
 impl Screen for AppState {
@@ -100,21 +100,16 @@ impl Screen for AppState {
 }
 
 impl AppState {
-
     pub fn load() -> anyhow::Result<AppState> {
         let settings = Settings::load()?;
         Ok(match settings.last_database.clone() {
             Some(path) => {
                 let password = Password::get(&path)?;
-                AppState::Main(MainState::new(
-                    settings,
-                    Database::load(&path, &password)?
-                ))
-            },
-            None => AppState::Setup(SetupState::new(settings)),
+                AppState::Main(MainState::new(settings, Database::load(&path, &password)?))
+            }
+            None => AppState::Setup(SetupState::new(settings))
         })
     }
-
 }
 
 fn ui() -> impl Widget<AppState> {
@@ -134,7 +129,7 @@ struct AppController;
 impl Controller<AppState, Switcher<AppState>> for AppController {
     fn event(&mut self, child: &mut Switcher<AppState>, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env) {
         if let Event::Command(cmd) = event {
-            if let Some(state) = cmd.get(NAVIGATE).cloned(){
+            if let Some(state) = cmd.get(NAVIGATE).cloned() {
                 *data = state;
             }
             if let Some(acc) = cmd.get(ACCOUNT_LOGIN).cloned() {

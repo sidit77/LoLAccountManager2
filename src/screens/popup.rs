@@ -1,13 +1,15 @@
 use std::ops::Deref;
 use std::sync::Arc;
-use druid::{Widget, Lens, Data, WidgetExt};
+
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Flex, Label, LineBreaking};
+use druid::{Data, Lens, Widget, WidgetExt};
 use druid_material_icons::normal::alert::WARNING_AMBER;
-use crate::AppState;
-use crate::data::{Settings};
+
+use crate::data::Settings;
 use crate::screens::Screen;
 use crate::widgets::Icon;
+use crate::AppState;
 
 #[derive(Clone, Data, Lens)]
 pub struct PopupState {
@@ -27,7 +29,7 @@ impl Screen for PopupState {
     }
 
     fn settings(&self) -> Settings {
-       self.previous.settings()
+        self.previous.settings()
     }
 
     fn previous(&self) -> Option<AppState> {
@@ -38,7 +40,7 @@ impl Screen for PopupState {
 fn build_popup_ui() -> impl Widget<PopupState> {
     Flex::column()
         .with_child(Icon::new(WARNING_AMBER).fix_height(60.0))
-        .with_child(Label::dynamic(|state: &PopupState, _ | state.message.clone()).with_line_break_mode(LineBreaking::WordWrap))
+        .with_child(Label::dynamic(|state: &PopupState, _| state.message.clone()).with_line_break_mode(LineBreaking::WordWrap))
         .with_spacer(3.0)
         .with_child(Button::new("Close").on_click(|ctx, state: &mut PopupState, _| {
             state.back(ctx, false);

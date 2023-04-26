@@ -1,7 +1,8 @@
 use std::ops::{Deref, DerefMut};
-use druid::Data;
+
 use druid::im::Vector;
 use druid::widget::ListIter;
+use druid::Data;
 
 #[derive(Clone)]
 pub struct IndexWrapper<T: Data>(Vector<T>);
@@ -59,14 +60,13 @@ impl<T: Data> ListIter<Indexed<T>> for IndexWrapper<T> {
 }
 
 #[derive(Clone, Data)]
-pub struct Indexed<T: Data>{
+pub struct Indexed<T: Data> {
     pub item: T,
     index: usize,
     len: usize
 }
 
 impl<T: Data> Indexed<T> {
-
     pub fn is_first(&self) -> bool {
         self.index == 0
     }
@@ -78,7 +78,6 @@ impl<T: Data> Indexed<T> {
     pub fn index(&self) -> usize {
         self.index
     }
-
 }
 
 impl<T: Data> Deref for Indexed<T> {

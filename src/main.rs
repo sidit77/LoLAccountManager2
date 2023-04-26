@@ -1,12 +1,13 @@
 #![windows_subsystem = "windows"]
 
-mod screens;
 mod data;
+pub mod os;
+mod screens;
 mod util;
 mod widgets;
-pub mod os;
 
 use druid::{AppLauncher, LocalizedString, WindowDesc};
+
 use crate::screens::{AppState, Screen};
 
 pub fn main() {

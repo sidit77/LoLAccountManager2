@@ -1,15 +1,17 @@
 use std::fmt::{Display, Formatter};
-use druid::{Widget, Data, Lens, WidgetExt, FileDialogOptions, FileSpec};
+
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, CrossAxisAlignment, Flex, Label, Maybe, RadioGroup};
-use druid_widget_nursery::ComputedWidget;
+use druid::{Data, FileDialogOptions, FileSpec, Lens, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
-use crate::{AppState};
+use druid_widget_nursery::ComputedWidget;
+
 use crate::data::{Database, Password, Settings};
 use crate::screens::main::MainState;
 use crate::screens::Screen;
 use crate::util::{password_field, path_field, PathOptions};
+use crate::AppState;
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
 
@@ -81,7 +83,7 @@ fn build_create_ui() -> impl Widget<CreateState> {
 #[derive(Clone, Data, Default, Eq, PartialEq, Lens)]
 struct OpenState {
     path: String,
-    password: String,
+    password: String
 }
 
 fn build_open_ui() -> impl Widget<OpenState> {
@@ -126,11 +128,14 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                 .cross_axis_alignment(CrossAxisAlignment::Start)
                 .with_child(Label::new("Action:"))
                 .with_spacer(6.0)
-                .with_child(RadioGroup::column([
-                    ("Create a new database", ActionState::Create(Default::default())),
-                    ("Open an exising database", ActionState::Open(Default::default())),
-                    ("Import an unencrypted database", ActionState::Import(Default::default()))])
-                    .padding((6.0, 0.0)))
+                .with_child(
+                    RadioGroup::column([
+                        ("Create a new database", ActionState::Create(Default::default())),
+                        ("Open an exising database", ActionState::Open(Default::default())),
+                        ("Import an unencrypted database", ActionState::Import(Default::default()))
+                    ])
+                    .padding((6.0, 0.0))
+                )
                 .padding(3.0)
                 .expand_width()
                 .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
@@ -175,7 +180,6 @@ fn build_setup_ui() -> impl Widget<SetupState> {
 }
 
 impl TryFrom<ActionState> for Database {
-
     type Error = anyhow::Error;
 
     fn try_from(state: ActionState) -> Result<Self, Self::Error> {
@@ -199,13 +203,13 @@ impl Display for VerificationError {
         match self {
             VerificationError::EmptyPath => f.write_str("Paths can't be empty!"),
             VerificationError::EmptyPassword => f.write_str("Passwords can't be empty!"),
-            VerificationError::MismatchedPasswords => f.write_str("The passwords don't match!"),
+            VerificationError::MismatchedPasswords => f.write_str("The passwords don't match!")
         }
     }
 }
 
 impl ActionState {
-    fn check(&self) ->  Result<(), VerificationError> {
+    fn check(&self) -> Result<(), VerificationError> {
         match self {
             ActionState::Create(state) => {
                 check_path(&state.path)?;
@@ -236,14 +240,14 @@ fn check_path(path: &str) -> Result<(), VerificationError> {
     Ok(())
 }
 
-fn check_password(password: &str) ->  Result<(), VerificationError> {
+fn check_password(password: &str) -> Result<(), VerificationError> {
     if password.is_empty() {
         return Err(VerificationError::EmptyPassword);
     }
     Ok(())
 }
 
-fn check_passwords(password1: &str, password2: &str) ->  Result<(), VerificationError> {
+fn check_passwords(password1: &str, password2: &str) -> Result<(), VerificationError> {
     if password1.ne(password2) {
         return Err(VerificationError::MismatchedPasswords);
     }

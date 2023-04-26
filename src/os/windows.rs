@@ -2,13 +2,18 @@ use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use std::ptr;
 use std::time::Duration;
-use crate::data::Account;
 
 use winapi::ctypes::c_int;
 use winapi::shared::minwindef::{DWORD, UINT, WORD};
 use winapi::shared::windef::RECT;
 use winapi::um::winnt::LONG;
-use winapi::um::winuser::{BringWindowToTop, FindWindowW, GetSystemMetrics, GetWindowRect, INPUT, INPUT_KEYBOARD, INPUT_MOUSE, IsWindowVisible, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, MOUSEINPUT, SendInput, SM_CXSCREEN, SM_CYSCREEN, VK_LCONTROL, VK_RETURN, VK_TAB};
+use winapi::um::winuser::{
+    BringWindowToTop, FindWindowW, GetSystemMetrics, GetWindowRect, IsWindowVisible, SendInput, INPUT, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT,
+    KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, MOUSEINPUT, SM_CXSCREEN,
+    SM_CYSCREEN, VK_LCONTROL, VK_RETURN, VK_TAB
+};
+
+use crate::data::Account;
 
 const VK_KEY_A: c_int = 0x41;
 
@@ -33,7 +38,7 @@ pub fn login_account(account: &Account) -> anyhow::Result<()> {
         let sx = 65536 / GetSystemMetrics(SM_CXSCREEN);
         let sy = 65536 / GetSystemMetrics(SM_CYSCREEN);
 
-       let mut input = Vec::new();
+        let mut input = Vec::new();
 
         input.push(get_mouse_event(
             sx * mix(rct.left, rct.right, 0.14),
@@ -41,8 +46,8 @@ pub fn login_account(account: &Account) -> anyhow::Result<()> {
             MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_MOVE
         ));
 
-        input.push(get_mouse_event(0,0, MOUSEEVENTF_LEFTDOWN));
-        input.push(get_mouse_event(0,0, MOUSEEVENTF_LEFTUP));
+        input.push(get_mouse_event(0, 0, MOUSEEVENTF_LEFTDOWN));
+        input.push(get_mouse_event(0, 0, MOUSEEVENTF_LEFTUP));
 
         input.push(get_keyboard_event(VK_TAB, 0, 0));
         input.push(get_keyboard_event(VK_TAB, 0, KEYEVENTF_KEYUP));

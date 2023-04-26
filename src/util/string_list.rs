@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::fmt::Formatter;
+
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::SerializeSeq;
 use serde::{Deserializer, Serializer};
@@ -22,7 +23,10 @@ impl<'de> Visitor<'de> for StringReader {
         write!(formatter, "a list of strings")
     }
 
-    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: SeqAccess<'de> {
+    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>
+    {
         let mut buffer = String::new();
         while let Some(x) = seq.next_element::<Cow<'de, str>>()? {
             buffer.push_str(&x);
@@ -30,7 +34,6 @@ impl<'de> Visitor<'de> for StringReader {
         }
         Ok(buffer)
     }
-
 }
 
 pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::Error> {

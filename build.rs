@@ -1,4 +1,3 @@
-
 #[cfg(windows)]
 fn main() {
     tauri_winres::WindowsResource::new()
@@ -9,6 +8,4 @@ fn main() {
 }
 
 #[cfg(not(windows))]
-fn main() {
-
-}
+fn main() {}

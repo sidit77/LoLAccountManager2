@@ -3,15 +3,16 @@ pub mod string_list;
 pub mod theme;
 
 use std::ops::Not;
-use druid::{Command, Data, Env, Event, EventCtx, FileDialogOptions, Lens, Widget, WidgetExt};
+
 use druid::commands::{OPEN_FILE, SAVE_FILE_AS, SHOW_OPEN_PANEL, SHOW_SAVE_PANEL};
 use druid::text::{EditableText, TextStorage};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Controller, CrossAxisAlignment, Either, Flex, Label, Scope, TextBox};
+use druid::{Command, Data, Env, Event, EventCtx, FileDialogOptions, Lens, Widget, WidgetExt};
 use druid_material_icons::IconPaths;
-use crate::widgets::{Icon, WidgetButton};
+pub use indexed::{IndexWrapper, Indexed};
 
-pub use indexed::{Indexed, IndexWrapper};
+use crate::widgets::{Icon, WidgetButton};
 
 pub fn icon_text_button<T: Data>(icon: IconPaths, text: &str) -> impl Widget<T> {
     WidgetButton::new(
@@ -28,10 +29,7 @@ pub fn field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
         .cross_axis_alignment(CrossAxisAlignment::Start)
         .with_child(Label::new(name))
         .with_spacer(2.0)
-        .with_child(
-            TextBox::new()
-                .expand_width()
-        )
+        .with_child(TextBox::new().expand_width())
         .padding(3.0)
         .expand_width()
         .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
@@ -46,19 +44,12 @@ struct PasswordState<T> {
 
 impl<T> PasswordState<T> {
     fn new(password: T) -> Self {
-        Self {
-            password,
-            visible: false
-        }
+        Self { password, visible: false }
     }
 }
 
 pub fn ternary<T>(a: bool, v1: T, v2: T) -> T {
-    if a {
-        v1
-    } else {
-        v2
-    }
+    if a { v1 } else { v2 }
 }
 
 pub fn password_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<T> {
@@ -74,14 +65,14 @@ pub fn password_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<
                     .with_flex_child(
                         Either::new(
                             |state: &PasswordState<_>, _| state.visible,
-                            TextBox::new()
-                                .lens(PasswordState::password),
+                            TextBox::new().lens(PasswordState::password),
                             TextBox::protected()
                                 .fix_height(34.0)
                                 .lens(PasswordState::password)
                         )
-                            .expand_width()
-                    , 1.0)
+                        .expand_width(),
+                        1.0
+                    )
                     .with_spacer(3.0)
                     .with_child(
                         Button::dynamic(|state: &bool, _| ternary(*state, "Hide", "Show").to_string())
@@ -89,9 +80,8 @@ pub fn password_field<T: EditableText + TextStorage>(name: &str) -> impl Widget<
                             .fix_width(62.0)
                             .lens(PasswordState::visible)
                     )
-            )
-            //TextBox::protected()
-                //.expand_width()
+            ) //TextBox::protected()
+              //.expand_width()
         )
         .padding(3.0)
         .expand_width()
@@ -104,11 +94,7 @@ pub fn multiline_field<T: EditableText + TextStorage>(name: &str) -> impl Widget
         .cross_axis_alignment(CrossAxisAlignment::Start)
         .with_child(Label::new(name))
         .with_spacer(2.0)
-        .with_flex_child(
-            TextBox::multiline()
-                .with_line_wrapping(false)
-                .expand()
-            , 1.0)
+        .with_flex_child(TextBox::multiline().with_line_wrapping(false).expand(), 1.0)
         .padding(3.0)
         .expand_width()
         .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
@@ -138,13 +124,9 @@ pub fn path_field<T: EditableText + TextStorage>(name: &str, options: PathOption
         .with_spacer(2.0)
         .with_child(
             Flex::row()
-                .with_flex_child(
-                    TextBox::new()
-                        .expand_width(), 1.0)
+                .with_flex_child(TextBox::new().expand_width(), 1.0)
                 .with_spacer(3.0)
-                .with_child(
-                    Button::new("Browse")
-                        .on_click(move |ctx, _, _| ctx.submit_command(options.clone())))
+                .with_child(Button::new("Browse").on_click(move |ctx, _, _| ctx.submit_command(options.clone())))
                 .expand_width()
         )
         .controller(controller)
@@ -153,7 +135,6 @@ pub fn path_field<T: EditableText + TextStorage>(name: &str, options: PathOption
         .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
         .rounded(TEXTBOX_BORDER_RADIUS)
 }
-
 
 impl<T: EditableText + TextStorage, W: Widget<T>> Controller<T, W> for PathOptions {
     fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut T, env: &Env) {
@@ -170,7 +151,6 @@ impl<T: EditableText + TextStorage, W: Widget<T>> Controller<T, W> for PathOptio
                     }
                 }
             }
-
         }
         child.event(ctx, event, data, env)
     }

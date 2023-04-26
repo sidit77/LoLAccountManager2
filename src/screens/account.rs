@@ -1,13 +1,15 @@
 use std::ops::{Index, IndexMut};
-use druid::{Widget, Lens, Data, WidgetExt};
+
 use druid::widget::{CrossAxisAlignment, Flex, MainAxisAlignment};
-use druid_material_icons::normal::navigation::CLOSE;
+use druid::{Data, Lens, Widget, WidgetExt};
 use druid_material_icons::normal::action::DONE;
-use crate::AppState;
+use druid_material_icons::normal::navigation::CLOSE;
+
 use crate::data::{Account, Settings};
 use crate::screens::edit::EditState;
 use crate::screens::Screen;
 use crate::util::{field, icon_text_button, multiline_field, password_field};
+use crate::AppState;
 
 #[derive(Copy, Clone, Data)]
 pub enum EditMode {
@@ -41,19 +43,24 @@ impl Screen for AccountState {
         Some(self.previous.clone().into())
     }
 
-    fn make_permanent(&mut self) -> anyhow::Result<()>{
+    fn make_permanent(&mut self) -> anyhow::Result<()> {
         match self.mode {
-            EditMode::New => self.previous.database.accounts.push_back(self.account.clone()),
-            EditMode::Existing(index) => {
-                *self.previous.database.accounts.index_mut(index) = self.account.clone()
-            }
+            EditMode::New => self
+                .previous
+                .database
+                .accounts
+                .push_back(self.account.clone()),
+            EditMode::Existing(index) => *self
+                .previous
+                .database
+                .accounts
+                .index_mut(index) = self.account.clone()
         };
         Ok(())
     }
 }
 
 impl AccountState {
-
     pub fn new(previous: EditState) -> Self {
         Self {
             previous,
@@ -70,39 +77,39 @@ impl AccountState {
             mode: EditMode::Existing(index)
         }
     }
-
 }
 
 fn build_account_ui() -> impl Widget<AccountState> {
     Flex::column()
-        .with_flex_child(Flex::column()
-            .cross_axis_alignment(CrossAxisAlignment::Start)
-            .with_child(field("Name:").lens(Account::name))
-            .with_spacer(3.0)
-            .with_child(field("Username:").lens(Account::username))
-            .with_spacer(3.0)
-            .with_child(password_field("Password:").lens(Account::password))
-            .with_spacer(3.0)
-            .with_flex_child(multiline_field("Notes:").lens(Account::notes), 1.0)
-            .lens(AccountState::account), 1.0)
+        .with_flex_child(
+            Flex::column()
+                .cross_axis_alignment(CrossAxisAlignment::Start)
+                .with_child(field("Name:").lens(Account::name))
+                .with_spacer(3.0)
+                .with_child(field("Username:").lens(Account::username))
+                .with_spacer(3.0)
+                .with_child(password_field("Password:").lens(Account::password))
+                .with_spacer(3.0)
+                .with_flex_child(multiline_field("Notes:").lens(Account::notes), 1.0)
+                .lens(AccountState::account),
+            1.0
+        )
         .with_spacer(3.0)
-        .with_child(Flex::row()
-            .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
-            .with_flex_child(
-                icon_text_button(DONE, "Ok")
-                    .on_click(|ctx, state: &mut AccountState, _|{
-                        state.back(ctx, true)
-                    }), 1.0)
-            .with_spacer(3.0)
-            .with_flex_child(
-                icon_text_button(CLOSE, "Cancel")
-                    .on_click(|ctx, state: &mut AccountState, _|{
-                        state.back(ctx, false)
-                    }), 1.0)
-            .expand_width()
-            .fix_height(50.0))
+        .with_child(
+            Flex::row()
+                .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
+                .with_flex_child(
+                    icon_text_button(DONE, "Ok").on_click(|ctx, state: &mut AccountState, _| state.back(ctx, true)),
+                    1.0
+                )
+                .with_spacer(3.0)
+                .with_flex_child(
+                    icon_text_button(CLOSE, "Cancel").on_click(|ctx, state: &mut AccountState, _| state.back(ctx, false)),
+                    1.0
+                )
+                .expand_width()
+                .fix_height(50.0)
+        )
         .padding(6.0)
         .expand()
 }
-
-
