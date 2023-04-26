@@ -9,21 +9,19 @@ use directories::BaseDirs;
 use druid::im::Vector;
 use druid::{Data, Lens};
 use keyring::Entry;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
-lazy_static! {
-    static ref CONFIG_PATH: PathBuf = {
-        let mut pargs = pico_args::Arguments::from_env();
-        match pargs.opt_value_from_str("--config-path").unwrap() {
-            Some(config_dir) => config_dir,
-            None => BaseDirs::new()
-                .expect("Could find the settings path")
-                .preference_dir()
-                .join("lol_account_manager.yml")
-        }
-    };
-}
+static CONFIG_PATH: Lazy<PathBuf> = Lazy::new(|| {
+    let mut pargs = pico_args::Arguments::from_env();
+    match pargs.opt_value_from_str("--config-path").unwrap() {
+        Some(config_dir) => config_dir,
+        None => BaseDirs::new()
+            .expect("Could find the settings path")
+            .preference_dir()
+            .join("lol_account_manager.yml")
+    }
+});
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq, Data, Serialize, Deserialize)]
 pub enum Theme {
