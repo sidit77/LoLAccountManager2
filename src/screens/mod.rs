@@ -3,20 +3,22 @@ mod edit;
 mod main;
 mod settings;
 mod setup;
+mod start;
 
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::Controller;
-use druid::{Application, Data, Env, Event, EventCtx, Lens, Selector, Widget, WidgetExt};
+use druid::{Application, Data, Env, Event, EventCtx, Lens, LifeCycleCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
-use crate::data::{Database, Password, Settings};
+use crate::data::Settings;
 use crate::os;
 use crate::screens::account::AccountState;
 use crate::screens::edit::EditState;
 use crate::screens::main::{MainState, ACCOUNT_LOGIN};
 use crate::screens::settings::SettingsState;
 use crate::screens::setup::SetupState;
+use crate::screens::start::StartupState;
 use crate::util::theme::setup_theme;
 
 pub const NAVIGATE: Selector<AppState> = Selector::new("lol_account_manager_v2.navigate");
@@ -32,6 +34,10 @@ pub trait Screen: Into<AppState> {
     }
 
     fn open(&self, ctx: &mut EventCtx, screen: impl Into<AppState>) {
+        ctx.submit_command(NAVIGATE.with(screen.into()))
+    }
+
+    fn open_lifecycle(&self, ctx: &mut LifeCycleCtx, screen: impl Into<AppState>) {
         ctx.submit_command(NAVIGATE.with(screen.into()))
     }
 
@@ -57,7 +63,7 @@ impl MainUi {
 
     pub fn new() -> MainUi {
         MainUi {
-            state: AppState::load().unwrap(),
+            state: StartupState::new().into()//AppState::load().unwrap(),
         }
     }
     
@@ -71,6 +77,7 @@ impl MainUi {
 
 #[derive(Clone, Data, Prism)]
 pub enum AppState {
+    Start(StartupState),
     Main(MainState),
     Settings(SettingsState),
     Editor(EditState),
@@ -90,6 +97,7 @@ impl Screen for AppState {
             AppState::Editor(state) => state.settings(),
             AppState::Account(state) => state.settings(),
             AppState::Setup(state) => state.settings(),
+            AppState::Start(state) => state.settings()
         }
     }
 
@@ -100,6 +108,7 @@ impl Screen for AppState {
             AppState::Editor(state) => state.previous(),
             AppState::Account(state) => state.previous(),
             AppState::Setup(state) => state.previous(),
+            AppState::Start(state) => state.previous()
         }
     }
 
@@ -110,20 +119,8 @@ impl Screen for AppState {
             AppState::Editor(state) => state.make_permanent(),
             AppState::Account(state) => state.make_permanent(),
             AppState::Setup(state) => state.make_permanent(),
+            AppState::Start(state) => state.make_permanent()
         }
-    }
-}
-
-impl AppState {
-    pub fn load() -> anyhow::Result<AppState> {
-        let settings = Settings::load()?;
-        Ok(match settings.last_database.clone() {
-            Some(path) => {
-                let password = Password::get(&path)?;
-                AppState::Main(MainState::new(settings, Database::load(&path, &password)?))
-            }
-            None => AppState::Setup(SetupState::new(settings))
-        })
     }
 }
 
@@ -134,6 +131,7 @@ fn ui() -> impl Widget<AppState> {
         .with_variant(AppStateEditor, EditState::widget())
         .with_variant(AppStateAccount, AccountState::widget())
         .with_variant(AppStateSetup, SetupState::widget())
+        .with_variant(AppStateStart, StartupState::widget())
         .controller(AppController)
         .background(BACKGROUND_DARK)
         .env_scope(|env, state: &AppState| setup_theme(state.settings().theme, env))
