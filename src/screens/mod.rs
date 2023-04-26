@@ -4,9 +4,10 @@ mod main;
 mod settings;
 mod setup;
 mod start;
+mod popup;
 
 use druid::theme::BACKGROUND_DARK;
-use druid::widget::Controller;
+use druid::widget::{Controller, Maybe, ZStack};
 use druid::{Application, Data, Env, Event, EventCtx, Lens, LifeCycleCtx, Selector, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
@@ -16,6 +17,7 @@ use crate::os;
 use crate::screens::account::AccountState;
 use crate::screens::edit::EditState;
 use crate::screens::main::{MainState, ACCOUNT_LOGIN};
+use crate::screens::popup::PopupState;
 use crate::screens::settings::SettingsState;
 use crate::screens::setup::SetupState;
 use crate::screens::start::StartupState;
@@ -54,22 +56,43 @@ pub trait Screen: Into<AppState> {
     }
 }
 
+pub trait Navigator {
+    fn close_popup(&self);
+}
+
+impl Navigator for EventCtx<'_, '_> {
+    fn close_popup(&self) {
+        self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+            if let Some(popup) = ui.popup.take() {
+                popup.close()
+            }
+        })
+    }
+}
+
 #[derive(Clone, Data, Lens)]
 pub struct MainUi {
-    pub state: AppState
+    pub state: AppState,
+    pub popup: Option<PopupState>
 }
 
 impl MainUi {
 
     pub fn new() -> MainUi {
         MainUi {
-            state: StartupState::new().into()//AppState::load().unwrap(),
+            state: StartupState::new().into(),//AppState::load().unwrap(),
+            popup: Some(PopupState::Leave("Test".to_string())),
         }
     }
     
     pub fn widget() -> impl Widget<MainUi> + 'static {
-        AppState::widget()
-            .lens(MainUi::state)
+        let main = AppState::widget()
+            .lens(MainUi::state);
+        let popup = Maybe::or_empty(PopupState::widget)
+            .lens(MainUi::popup);
+        ZStack::new(main)
+            .with_centered_child(popup)
+            .env_scope(|env, ui: &MainUi| setup_theme(ui.state.settings().theme, env))
     }
 
 }
@@ -134,7 +157,6 @@ fn ui() -> impl Widget<AppState> {
         .with_variant(AppStateStart, StartupState::widget())
         .controller(AppController)
         .background(BACKGROUND_DARK)
-        .env_scope(|env, state: &AppState| setup_theme(state.settings().theme, env))
 }
 
 struct AppController;

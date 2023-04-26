@@ -1,53 +1,25 @@
-use std::ops::Deref;
-use std::sync::Arc;
+use druid::{Color, Widget, WidgetExt, Data};
+use druid::widget::{BackgroundBrush, Button};
+use druid_widget_nursery::prism::Prism;
+use crate::screens::Navigator;
 
-use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Flex, Label, LineBreaking};
-use druid::{Data, Lens, Widget, WidgetExt};
-use druid_material_icons::normal::alert::WARNING_AMBER;
-
-use crate::data::Settings;
-use crate::screens::Screen;
-use crate::widgets::Icon;
-use crate::AppState;
-
-#[derive(Clone, Data, Lens)]
-pub struct PopupState {
-    pub previous: Arc<AppState>,
-    pub message: String
+#[derive(Clone, Data, Prism)]
+pub enum  PopupState {
+    Leave(String)
 }
 
-impl From<PopupState> for AppState {
-    fn from(value: PopupState) -> Self {
-        Self::Popup(value)
-    }
-}
+impl PopupState {
 
-impl Screen for PopupState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Box::new(build_popup_ui())
-    }
-
-    fn settings(&self) -> Settings {
-        self.previous.settings()
+    pub fn widget() -> impl Widget<Self> + 'static {
+        Button::new("Test")
+            .on_click(|ctx, _, _| ctx.close_popup())
+            .center()
+            .background(BackgroundBrush::Color(Color::rgba8(0, 0, 0, 128)))
+            .expand()
     }
 
-    fn previous(&self) -> Option<AppState> {
-        Some(self.previous.deref().clone())
-    }
-}
+    pub fn close(self) {
 
-fn build_popup_ui() -> impl Widget<PopupState> {
-    Flex::column()
-        .with_child(Icon::new(WARNING_AMBER).fix_height(60.0))
-        .with_child(Label::dynamic(|state: &PopupState, _| state.message.clone()).with_line_break_mode(LineBreaking::WordWrap))
-        .with_spacer(3.0)
-        .with_child(Button::new("Close").on_click(|ctx, state: &mut PopupState, _| {
-            state.back(ctx, false);
-        }))
-        .padding(6.0)
-        .background(BACKGROUND_LIGHT)
-        .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
-        .rounded(TEXTBOX_BORDER_RADIUS)
-        .center()
+    }
+
 }
