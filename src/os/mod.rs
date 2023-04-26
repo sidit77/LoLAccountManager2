@@ -2,4 +2,4 @@
 pub mod windows;
 
 #[cfg(windows)]
-pub use windows::{set_window_icon, login_account};
+pub use windows::login_account;

@@ -14,7 +14,7 @@ lazy_static = "1.4"
 druid = { version="0.8", features = ["im", "raw-win-handle", "serde"]}
 druid-widget-nursery = { git = "https://github.com/linebender/druid-widget-nursery", features=["derive"] }
 druid-material-icons = "0.2.0"
-directories = "4.0"
+directories = "5"
 pico-args = "0.5"
 serde = { version="1.0", features=["derive"] }
 serde_yaml = "0.9"
@@ -25,8 +25,7 @@ age = { git = "https://github.com/sidit77/rage", branch = "variable-work-factor"
 winapi = { version = "0.3", features = ["windef", "winerror"] }
 
 [target.'cfg(windows)'.build-dependencies]
-winres = "0.1"
-
+tauri-winres = "0.1"
 
 [patch.crates-io.druid]
 git = "https://github.com/sidit77/druid"

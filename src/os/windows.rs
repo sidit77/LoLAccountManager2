@@ -2,28 +2,8 @@ use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use std::ptr;
 use std::time::Duration;
-use druid::{HasRawWindowHandle, RawWindowHandle, WindowHandle};
 use crate::data::Account;
 
-use winapi::{
-    shared::{
-        windef::{HICON, HWND__},
-    },
-    um::{
-        libloaderapi::GetModuleHandleW,
-        winuser::{
-            LoadImageW,
-            SendMessageW,
-            ICON_BIG,
-            ICON_SMALL,
-            IMAGE_ICON,
-            LR_DEFAULTSIZE,
-            LR_SHARED,
-            LR_VGACOLOR,
-            WM_SETICON,
-        },
-    },
-};
 use winapi::ctypes::c_int;
 use winapi::shared::minwindef::{DWORD, UINT, WORD};
 use winapi::shared::windef::RECT;
@@ -138,44 +118,6 @@ fn get_keyboard_event(vk: c_int, scan: WORD, flags: DWORD) -> INPUT {
             dwExtraInfo: 0
         };
         input
-    }
-}
-
-pub fn set_window_icon(handle: &WindowHandle) {
-    let raw_handle = handle.raw_window_handle();
-    #[allow(clippy::single_match)]
-    match raw_handle {
-        RawWindowHandle::Win32(win_handle) => unsafe {
-            let program_icon: isize = {
-                let h_instance = GetModuleHandleW(ptr::null());
-
-                LoadImageW(h_instance, to_wstring("icon").as_ptr(),
-                    IMAGE_ICON, 0, 0, LR_SHARED | LR_DEFAULTSIZE | LR_VGACOLOR,
-                ).cast::<HICON>() as isize
-            };
-
-            assert_winapi_success();
-
-            SendMessageW(win_handle.hwnd.cast::<HWND__>(),
-                WM_SETICON, ICON_SMALL as usize, program_icon);
-            //assert_winapi_success();
-            SendMessageW(win_handle.hwnd.cast::<HWND__>(),
-                         WM_SETICON, ICON_BIG as usize, program_icon, );
-            //assert_winapi_success();
-        },
-        _ => {}
-    }
-}
-
-fn assert_winapi_success() {
-    #[cfg(debug_assertions)]
-    {
-        let last_error = unsafe { winapi::um::errhandlingapi::GetLastError() };
-        assert_eq!(
-            winapi::shared::winerror::ERROR_SUCCESS, last_error,
-            "the last WinAPI call failed with error code: {:#010X}",
-            last_error
-        );
     }
 }
 
