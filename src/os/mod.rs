@@ -1,5 +1,5 @@
 #[cfg(windows)]
-pub mod windows;
+#[path = "windows.rs"]
+pub mod platform;
 
-#[cfg(windows)]
-pub use windows::login_account;
+pub use platform::login_account;

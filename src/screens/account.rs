@@ -50,11 +50,7 @@ impl Screen for AccountState {
                 .database
                 .accounts
                 .push_back(self.account.clone()),
-            EditMode::Existing(index) => *self
-                .previous
-                .database
-                .accounts
-                .index_mut(index) = self.account.clone()
+            EditMode::Existing(index) => *self.previous.database.accounts.index_mut(index) = self.account.clone()
         };
         Ok(())
     }

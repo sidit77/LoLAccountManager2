@@ -22,7 +22,7 @@ keyring = "2"
 age = { git = "https://github.com/sidit77/rage", branch = "variable-work-factor" }
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["windef", "winerror"] }
+windows = { version = "0.48", features = ["Win32_Foundation", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_WindowsAndMessaging"]}
 
 [target.'cfg(windows)'.build-dependencies]
 tauri-winres = "0.1"

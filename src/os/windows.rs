@@ -1,37 +1,27 @@
-use std::ffi::OsStr;
-use std::os::windows::ffi::OsStrExt;
-use std::ptr;
+use std::mem::size_of;
 use std::time::Duration;
 
-use winapi::ctypes::c_int;
-use winapi::shared::minwindef::{DWORD, UINT, WORD};
-use winapi::shared::windef::RECT;
-use winapi::um::winnt::LONG;
-use winapi::um::winuser::{
-    BringWindowToTop, FindWindowW, GetSystemMetrics, GetWindowRect, IsWindowVisible, SendInput, INPUT, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT,
-    KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, MOUSEEVENTF_ABSOLUTE, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MOVE, MOUSEINPUT, SM_CXSCREEN,
-    SM_CYSCREEN, VK_LCONTROL, VK_RETURN, VK_TAB
-};
+use anyhow::ensure;
+use windows::core::PCWSTR;
+use windows::w;
+use windows::Win32::Foundation::RECT;
+use windows::Win32::UI::Input::KeyboardAndMouse::*;
+use windows::Win32::UI::WindowsAndMessaging::*;
 
 use crate::data::Account;
 
-const VK_KEY_A: c_int = 0x41;
-
+#[allow(clippy::vec_init_then_push)]
 pub fn login_account(account: &Account) -> anyhow::Result<()> {
     unsafe {
         println!("Logging in...");
-        //assert_winapi_success();
 
-        let window = FindWindowW(ptr::null(), to_wstring("Riot Client Main").as_ptr());
-        //assert_winapi_success();
+        let window = FindWindowW(PCWSTR::null(), w!("Riot Client Main"));
+        ensure!(window.0 != 0);
+        BringWindowToTop(window).ok()?;
 
-        assert!(!window.is_null());
-        assert_ne!(BringWindowToTop(window), 0);
-
-        let mut rct: RECT = std::mem::zeroed();
-        assert_ne!(GetWindowRect(window, &mut rct), 0);
-        assert_ne!(IsWindowVisible(window), 0);
-        //assert_winapi_success();
+        let mut rct = RECT::default();
+        GetWindowRect(window, &mut rct).ok()?;
+        IsWindowVisible(window).ok()?;
 
         std::thread::sleep(Duration::from_millis(100));
 
@@ -49,86 +39,73 @@ pub fn login_account(account: &Account) -> anyhow::Result<()> {
         input.push(get_mouse_event(0, 0, MOUSEEVENTF_LEFTDOWN));
         input.push(get_mouse_event(0, 0, MOUSEEVENTF_LEFTUP));
 
-        input.push(get_keyboard_event(VK_TAB, 0, 0));
+        input.push(get_keyboard_event(VK_TAB, 0, None));
         input.push(get_keyboard_event(VK_TAB, 0, KEYEVENTF_KEYUP));
 
-        input.push(get_keyboard_event(VK_LCONTROL, 0, 0));
-        input.push(get_keyboard_event(VK_KEY_A, 0, 0));
-        input.push(get_keyboard_event(VK_KEY_A, 0, KEYEVENTF_KEYUP));
+        input.push(get_keyboard_event(VK_LCONTROL, 0, None));
+        input.push(get_keyboard_event(VK_A, 0, None));
+        input.push(get_keyboard_event(VK_A, 0, KEYEVENTF_KEYUP));
         input.push(get_keyboard_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP));
 
         for c in account.username.encode_utf16() {
-            input.push(get_keyboard_event(0, c, KEYEVENTF_UNICODE | 0));
-            input.push(get_keyboard_event(0, c, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP));
+            input.push(get_keyboard_event(VIRTUAL_KEY::default(), c, KEYEVENTF_UNICODE));
+            input.push(get_keyboard_event(VIRTUAL_KEY::default(), c, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP));
         }
 
-        input.push(get_keyboard_event(VK_TAB, 0, 0));
+        input.push(get_keyboard_event(VK_TAB, 0, None));
         input.push(get_keyboard_event(VK_TAB, 0, KEYEVENTF_KEYUP));
 
-        input.push(get_keyboard_event(VK_LCONTROL, 0, 0));
-        input.push(get_keyboard_event(VK_KEY_A, 0, 0));
-        input.push(get_keyboard_event(VK_KEY_A, 0, KEYEVENTF_KEYUP));
+        input.push(get_keyboard_event(VK_LCONTROL, 0, None));
+        input.push(get_keyboard_event(VK_A, 0, None));
+        input.push(get_keyboard_event(VK_A, 0, KEYEVENTF_KEYUP));
         input.push(get_keyboard_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP));
 
         for c in account.password.encode_utf16() {
-            input.push(get_keyboard_event(0, c, KEYEVENTF_UNICODE | 0));
-            input.push(get_keyboard_event(0, c, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP));
+            input.push(get_keyboard_event(VIRTUAL_KEY::default(), c, KEYEVENTF_UNICODE));
+            input.push(get_keyboard_event(VIRTUAL_KEY::default(), c, KEYEVENTF_UNICODE | KEYEVENTF_KEYUP));
         }
 
-        input.push(get_keyboard_event(VK_RETURN, 0, 0));
+        input.push(get_keyboard_event(VK_RETURN, 0, None));
         input.push(get_keyboard_event(VK_RETURN, 0, KEYEVENTF_KEYUP));
 
-        assert_eq!(
-            input.len() as UINT,
-            SendInput(input.len() as UINT, input.as_mut_ptr(), std::mem::size_of::<INPUT>() as c_int),
-        );
+        let sent = SendInput(&input, size_of::<INPUT>() as i32) as usize;
+        ensure!(sent == input.len());
 
         Ok(())
     }
 }
 
-fn mix(a: LONG, b: LONG, v: f32) -> LONG {
-    a + ((b - a) as f32 * v) as LONG
+fn mix(a: i32, b: i32, v: f32) -> i32 {
+    a + ((b - a) as f32 * v) as i32
 }
 
-fn get_mouse_event(x: LONG, y: LONG, m: DWORD) -> INPUT {
-    unsafe {
-        let mut input = INPUT {
-            type_: INPUT_MOUSE,
-            u: std::mem::zeroed()
-        };
-        *input.u.mi_mut() = MOUSEINPUT {
-            dx: x,
-            dy: y,
-            mouseData: 0,
-            dwFlags: m,
-            time: 0,
-            dwExtraInfo: 0
-        };
-        input
+fn get_mouse_event(x: i32, y: i32, m: MOUSE_EVENT_FLAGS) -> INPUT {
+    INPUT {
+        r#type: INPUT_MOUSE,
+        Anonymous: INPUT_0 {
+            mi: MOUSEINPUT {
+                dx: x,
+                dy: y,
+                mouseData: 0,
+                dwFlags: m,
+                time: 0,
+                dwExtraInfo: 0
+            }
+        }
     }
 }
 
-fn get_keyboard_event(vk: c_int, scan: WORD, flags: DWORD) -> INPUT {
-    unsafe {
-        let mut input = INPUT {
-            type_: INPUT_KEYBOARD,
-            u: std::mem::zeroed()
-        };
-        *input.u.ki_mut() = KEYBDINPUT {
-            wVk: vk as WORD,
-            wScan: scan,
-            dwFlags: flags,
-            time: 0,
-            dwExtraInfo: 0
-        };
-        input
+fn get_keyboard_event(vk: VIRTUAL_KEY, scan: u16, flags: impl Into<Option<KEYBD_EVENT_FLAGS>>) -> INPUT {
+    INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: INPUT_0 {
+            ki: KEYBDINPUT {
+                wVk: vk,
+                wScan: scan,
+                dwFlags: flags.into().unwrap_or_default(),
+                time: 0,
+                dwExtraInfo: 0
+            }
+        }
     }
-}
-
-fn to_wstring(str: &str) -> Vec<u16> {
-    OsStr::new(str)
-        .encode_wide()
-        .chain(Some(0).into_iter())
-        .collect::<Vec<_>>()
 }
