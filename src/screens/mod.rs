@@ -1,7 +1,6 @@
 mod account;
 mod edit;
 mod main;
-mod popup;
 mod settings;
 mod setup;
 
@@ -16,7 +15,6 @@ use crate::os;
 use crate::screens::account::AccountState;
 use crate::screens::edit::EditState;
 use crate::screens::main::{MainState, ACCOUNT_LOGIN};
-use crate::screens::popup::PopupState;
 use crate::screens::settings::SettingsState;
 use crate::screens::setup::SetupState;
 use crate::util::theme::setup_theme;
@@ -57,7 +55,6 @@ pub enum AppState {
     Editor(EditState),
     Account(AccountState),
     Setup(SetupState),
-    Popup(PopupState)
 }
 
 impl Screen for AppState {
@@ -72,7 +69,6 @@ impl Screen for AppState {
             AppState::Editor(state) => state.settings(),
             AppState::Account(state) => state.settings(),
             AppState::Setup(state) => state.settings(),
-            AppState::Popup(state) => state.settings()
         }
     }
 
@@ -83,7 +79,6 @@ impl Screen for AppState {
             AppState::Editor(state) => state.previous(),
             AppState::Account(state) => state.previous(),
             AppState::Setup(state) => state.previous(),
-            AppState::Popup(state) => state.previous()
         }
     }
 
@@ -94,7 +89,6 @@ impl Screen for AppState {
             AppState::Editor(state) => state.make_permanent(),
             AppState::Account(state) => state.make_permanent(),
             AppState::Setup(state) => state.make_permanent(),
-            AppState::Popup(state) => state.make_permanent()
         }
     }
 }
@@ -119,7 +113,7 @@ fn ui() -> impl Widget<AppState> {
         .with_variant(AppStateEditor, EditState::widget())
         .with_variant(AppStateAccount, AccountState::widget())
         .with_variant(AppStateSetup, SetupState::widget())
-        .with_variant(AppStatePopup, PopupState::widget())
+        //.with_variant(AppStatePopup, PopupState::widget())
         .controller(AppController)
         .background(BACKGROUND_DARK)
         .env_scope(|env, state: &AppState| setup_theme(state.settings().theme, env))
@@ -133,11 +127,6 @@ impl Controller<AppState, Switcher<AppState>> for AppController {
                 *data = state;
             }
             if let Some(acc) = cmd.get(ACCOUNT_LOGIN).cloned() {
-                //let new = PopupState {
-                //    previous: Arc::new(data.clone()),
-                //    message: format!("{:#?}", acc),
-                //};
-                //*data = AppState::Popup(new);
                 os::login_account(&acc).unwrap();
                 if data.settings().close_on_login {
                     Application::global().quit();
