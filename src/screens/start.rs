@@ -18,7 +18,15 @@ impl StartupState {
             settings: Settings::load().unwrap(),
         }
     }
-    
+
+    pub fn widget() -> impl Widget<Self> + 'static {
+        Flex::column()
+            .with_child(Spinner::new())
+            .with_child(Label::new("Loading..."))
+            .controller(LoadDatabase)
+            .center()
+    }
+
 }
 
 impl From<StartupState> for AppState {
@@ -28,14 +36,6 @@ impl From<StartupState> for AppState {
 }
 
 impl Screen for StartupState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Flex::column()
-            .with_child(Spinner::new())
-            .with_child(Label::new("Loading..."))
-            .controller(LoadDatabase)
-            .center()
-            .boxed()
-    }
 
     fn settings(&self) -> Settings {
         self.settings.clone()

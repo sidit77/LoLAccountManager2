@@ -40,6 +40,10 @@ impl EditState {
         self.database != self.previous.database
     }
 
+    pub fn widget() -> impl Widget<Self> + 'static {
+        build_edit_ui()
+    }
+
 }
 
 impl From<EditState> for AppState {
@@ -49,9 +53,6 @@ impl From<EditState> for AppState {
 }
 
 impl Screen for EditState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Box::new(build_edit_ui())
-    }
 
     fn settings(&self) -> Settings {
         self.previous.settings()

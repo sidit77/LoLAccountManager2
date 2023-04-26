@@ -22,6 +22,14 @@ pub struct SetupState {
     state: ActionState
 }
 
+impl SetupState {
+
+    pub fn widget() -> impl Widget<Self> + 'static {
+        build_setup_ui()
+    }
+
+}
+
 impl From<SetupState> for AppState {
     fn from(value: SetupState) -> Self {
         Self::Setup(value)
@@ -29,10 +37,6 @@ impl From<SetupState> for AppState {
 }
 
 impl Screen for SetupState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Box::new(build_setup_ui())
-    }
-
     fn settings(&self) -> Settings {
         self.settings.clone()
     }

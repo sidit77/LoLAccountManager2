@@ -22,6 +22,10 @@ impl SettingsState {
         }
     }
 
+    pub fn widget() -> impl Widget<Self> + 'static {
+        build_settings_ui()
+    }
+
 }
 
 impl From<MainState> for SettingsState {
@@ -40,9 +44,6 @@ impl From<SettingsState> for AppState {
 }
 
 impl Screen for SettingsState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Box::new(build_settings_ui())
-    }
 
     fn settings(&self) -> Settings {
         self.settings.clone()

@@ -48,6 +48,10 @@ impl AccountState {
         }
     }
 
+    pub fn widget() -> impl Widget<Self> + 'static {
+        build_account_ui()
+    }
+
 }
 
 impl From<AccountState> for AppState {
@@ -57,9 +61,7 @@ impl From<AccountState> for AppState {
 }
 
 impl Screen for AccountState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Box::new(build_account_ui())
-    }
+
 
     fn settings(&self) -> Settings {
         self.previous.settings()

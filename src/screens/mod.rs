@@ -24,8 +24,6 @@ use crate::util::theme::setup_theme;
 
 pub trait Screen: Into<AppState> {
 
-    fn widget() -> Box<dyn Widget<Self>>;
-
     fn settings(&self) -> Settings;
 
     fn previous(&self) -> Option<AppState> {
@@ -139,10 +137,21 @@ pub enum AppState {
     Setup(SetupState),
 }
 
-impl Screen for AppState {
-    fn widget() -> Box<dyn Widget<Self>> {
-        Box::new(ui())
+impl AppState {
+    pub fn widget() -> impl Widget<Self> + 'static {
+        Switcher::new()
+            .with_variant(AppStateMain, MainState::widget())
+            .with_variant(AppStateSettings, SettingsState::widget())
+            .with_variant(AppStateEditor, EditState::widget())
+            .with_variant(AppStateAccount, AccountState::widget())
+            .with_variant(AppStateSetup, SetupState::widget())
+            .with_variant(AppStateStart, StartupState::widget())
+            .background(BACKGROUND_DARK)
     }
+
+}
+
+impl Screen for AppState {
 
     fn settings(&self) -> Settings {
         match self {
@@ -166,15 +175,4 @@ impl Screen for AppState {
         }
     }
 
-}
-
-fn ui() -> impl Widget<AppState> {
-    Switcher::new()
-        .with_variant(AppStateMain, MainState::widget())
-        .with_variant(AppStateSettings, SettingsState::widget())
-        .with_variant(AppStateEditor, EditState::widget())
-        .with_variant(AppStateAccount, AccountState::widget())
-        .with_variant(AppStateSetup, SetupState::widget())
-        .with_variant(AppStateStart, StartupState::widget())
-        .background(BACKGROUND_DARK)
 }
