@@ -7,7 +7,8 @@ use druid_material_icons::normal::navigation::CLOSE;
 
 use crate::data::{Account, Settings};
 use crate::screens::edit::EditState;
-use crate::screens::{AppState, Screen};
+use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::popup::PopupState;
 use crate::util::{field, icon_text_button, multiline_field, password_field};
 
 #[derive(Copy, Clone, Data)]
@@ -21,6 +22,32 @@ pub struct AccountState {
     pub previous: EditState,
     pub account: Account,
     pub mode: EditMode
+}
+
+impl AccountState {
+
+    fn valid(&self) -> bool {
+        !self.account.name.is_empty() && !self.account.username.is_empty() && !self.account.password.is_empty()
+    }
+
+    fn unsaved_changes(&self) -> bool {
+         match self.mode {
+             EditMode::New => !self.account.name.is_empty() || !self.account.username.is_empty() || !self.account.password.is_empty(),
+             EditMode::Existing(i) => self.previous.database.accounts.index(i) != &self.account
+         }
+    }
+
+    fn save(&mut self) {
+        match self.mode {
+            EditMode::New => self
+                .previous
+                .database
+                .accounts
+                .push_back(self.account.clone()),
+            EditMode::Existing(index) => *self.previous.database.accounts.index_mut(index) = self.account.clone()
+        }
+    }
+
 }
 
 impl From<AccountState> for AppState {
@@ -43,14 +70,7 @@ impl Screen for AccountState {
     }
 
     fn make_permanent(&mut self) -> anyhow::Result<()> {
-        match self.mode {
-            EditMode::New => self
-                .previous
-                .database
-                .accounts
-                .push_back(self.account.clone()),
-            EditMode::Existing(index) => *self.previous.database.accounts.index_mut(index) = self.account.clone()
-        };
+        self.save();
         Ok(())
     }
 }
@@ -94,12 +114,21 @@ fn build_account_ui() -> impl Widget<AccountState> {
             Flex::row()
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
                 .with_flex_child(
-                    icon_text_button(DONE, "Ok").on_click(|ctx, state: &mut AccountState, _| state.back(ctx, true)),
+                    icon_text_button(DONE, "Ok")
+                        .on_click(|ctx, state: &mut AccountState, _| {
+                            state.save();
+                            ctx.back();
+                        })
+                        .disabled_if(|state: &AccountState, _| !state.valid() || !state.unsaved_changes()),
                     1.0
                 )
                 .with_spacer(3.0)
                 .with_flex_child(
-                    icon_text_button(CLOSE, "Cancel").on_click(|ctx, state: &mut AccountState, _| state.back(ctx, false)),
+                    icon_text_button(CLOSE, "Cancel")
+                        .on_click(|ctx, state: &mut AccountState, _| match state.unsaved_changes() {
+                            true => ctx.open_popup(PopupState::Leave(())),
+                            false => ctx.back()
+                        }),
                     1.0
                 )
                 .expand_width()
