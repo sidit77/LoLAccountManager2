@@ -14,19 +14,18 @@ pub struct SettingsState {
 }
 
 impl SettingsState {
-
     fn save(&self, ctx: &EventCtx) {
         let settings = self.settings.clone();
-        ctx.get_external_handle().add_idle_callback(move |ui: &mut MainUi| {
-            settings.save().unwrap();
-            ui.settings = settings;
-        })
+        ctx.get_external_handle()
+            .add_idle_callback(move |ui: &mut MainUi| {
+                settings.save().unwrap();
+                ui.settings = settings;
+            })
     }
 
     pub fn widget() -> impl Widget<Self> + 'static {
         build_settings_ui()
     }
-
 }
 
 impl From<SettingsState> for AppState {

@@ -1,4 +1,5 @@
 use std::thread::spawn;
+
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{AspectRatioBox, Container, Controller, Flex, Label, List, MainAxisAlignment};
 use druid::{lens, Data, Env, Event, EventCtx, Lens, LensExt, Selector, Widget, WidgetExt};
@@ -10,8 +11,8 @@ use druid_material_icons::normal::navigation::{ARROW_DROP_DOWN, ARROW_DROP_UP, C
 use crate::data::{Account, Database};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
-use crate::screens::{AppState, Navigator};
 use crate::screens::popup::PopupState;
+use crate::screens::{AppState, Navigator};
 use crate::util::{icon_text_button, IndexWrapper, Indexed};
 use crate::widgets::{Icon, WidgetButton};
 
@@ -35,7 +36,6 @@ impl From<MainState> for EditState {
 }
 
 impl EditState {
-
     fn unsaved_changes(&self) -> bool {
         self.database != self.previous.database
     }
@@ -43,7 +43,6 @@ impl EditState {
     pub fn widget() -> impl Widget<Self> + 'static {
         build_edit_ui()
     }
-
 }
 
 impl From<EditState> for AppState {

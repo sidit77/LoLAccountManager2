@@ -22,11 +22,9 @@ pub struct SetupState {
 }
 
 impl SetupState {
-
     pub fn widget() -> impl Widget<Self> + 'static {
         build_setup_ui()
     }
-
 }
 
 impl From<SetupState> for AppState {
@@ -161,12 +159,13 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                 .on_click(|ctx, state: &mut SetupState, _| {
                     let db = Database::try_from(state.state.clone()).unwrap();
                     let path = db.path.clone();
-                    ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
-                        ui.settings.last_database = Some(path);
-                        ui.settings.save().unwrap();
-                    });
+                    ctx.get_external_handle()
+                        .add_idle_callback(|ui: &mut MainUi| {
+                            ui.settings.last_database = Some(path);
+                            ui.settings.save().unwrap();
+                        });
                     Password::store(&db.path, &db.password).unwrap();
-                    ctx.open(MainState::new( db));
+                    ctx.open(MainState::new(db));
                 })
                 .disabled_if(|state: &SetupState, _| state.state.check().is_err())
         )

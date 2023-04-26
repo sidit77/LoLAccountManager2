@@ -1,7 +1,7 @@
 use druid::im::Vector;
 use druid::theme::{BACKGROUND_LIGHT, BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
 use druid::widget::{Button, Flex, List, TextBox};
-use druid::{lens, Data, Lens, LensExt, TextAlignment, Widget, WidgetExt, Application};
+use druid::{lens, Application, Data, Lens, LensExt, TextAlignment, Widget, WidgetExt};
 use druid_material_icons::normal::action::SETTINGS;
 use druid_material_icons::normal::image::EDIT;
 
@@ -63,16 +63,16 @@ fn build_main_ui() -> impl Widget<MainState> {
                 )
                 .with_spacer(3.0)
                 .with_child(
-                    WidgetButton::new(Icon::new(SETTINGS).expand_height().padding(3.0))
-                        .on_click(|ctx, state: &mut MainState, _| {
-                            let state = state.clone();
-                            ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+                    WidgetButton::new(Icon::new(SETTINGS).expand_height().padding(3.0)).on_click(|ctx, state: &mut MainState, _| {
+                        let state = state.clone();
+                        ctx.get_external_handle()
+                            .add_idle_callback(|ui: &mut MainUi| {
                                 ui.open(SettingsState {
                                     previous: state,
-                                    settings: ui.settings.clone(),
+                                    settings: ui.settings.clone()
                                 })
                             })
-                        })
+                    })
                 )
                 .expand_width()
                 .fix_height(50.0)
@@ -107,11 +107,12 @@ fn item_ui() -> impl Widget<Account> {
     Button::new(|item: &Account, _: &_| item.name.to_string())
         .on_click(|ctx, acc: &mut Account, _| {
             os::login_account(acc).unwrap();
-            ctx.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
-                if ui.settings.close_on_login {
-                    Application::global().quit();
-                }
-            });
+            ctx.get_external_handle()
+                .add_idle_callback(|ui: &mut MainUi| {
+                    if ui.settings.close_on_login {
+                        Application::global().quit();
+                    }
+                });
         })
         .expand()
         .height(50.0)

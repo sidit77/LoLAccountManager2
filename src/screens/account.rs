@@ -7,8 +7,8 @@ use druid_material_icons::normal::navigation::CLOSE;
 
 use crate::data::Account;
 use crate::screens::edit::EditState;
-use crate::screens::{AppState, Navigator};
 use crate::screens::popup::PopupState;
+use crate::screens::{AppState, Navigator};
 use crate::util::{field, icon_text_button, multiline_field, password_field};
 
 #[derive(Copy, Clone, Data)]
@@ -25,16 +25,15 @@ pub struct AccountState {
 }
 
 impl AccountState {
-
     fn valid(&self) -> bool {
         !self.account.name.is_empty() && !self.account.username.is_empty() && !self.account.password.is_empty()
     }
 
     fn unsaved_changes(&self) -> bool {
-         match self.mode {
-             EditMode::New => !self.account.name.is_empty() || !self.account.username.is_empty() || !self.account.password.is_empty(),
-             EditMode::Existing(i) => self.previous.database.accounts.index(i) != &self.account
-         }
+        match self.mode {
+            EditMode::New => !self.account.name.is_empty() || !self.account.username.is_empty() || !self.account.password.is_empty(),
+            EditMode::Existing(i) => self.previous.database.accounts.index(i) != &self.account
+        }
     }
 
     fn save(&mut self) {
@@ -51,7 +50,6 @@ impl AccountState {
     pub fn widget() -> impl Widget<Self> + 'static {
         build_account_ui()
     }
-
 }
 
 impl From<AccountState> for AppState {
@@ -109,11 +107,10 @@ fn build_account_ui() -> impl Widget<AccountState> {
                 )
                 .with_spacer(3.0)
                 .with_flex_child(
-                    icon_text_button(CLOSE, "Cancel")
-                        .on_click(|ctx, state: &mut AccountState, _| match state.unsaved_changes() {
-                            true => ctx.open_popup(PopupState::Leave(())),
-                            false => ctx.back()
-                        }),
+                    icon_text_button(CLOSE, "Cancel").on_click(|ctx, state: &mut AccountState, _| match state.unsaved_changes() {
+                        true => ctx.open_popup(PopupState::Leave(())),
+                        false => ctx.back()
+                    }),
                     1.0
                 )
                 .expand_width()

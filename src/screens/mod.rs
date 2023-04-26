@@ -1,10 +1,10 @@
 mod account;
 mod edit;
 mod main;
+mod popup;
 mod settings;
 mod setup;
 mod start;
-mod popup;
 
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::{Maybe, ZStack};
@@ -15,7 +15,7 @@ use druid_widget_nursery::prism::Prism;
 use crate::data::{Settings, Theme};
 use crate::screens::account::AccountState;
 use crate::screens::edit::EditState;
-use crate::screens::main::{MainState};
+use crate::screens::main::MainState;
 use crate::screens::popup::PopupState;
 use crate::screens::settings::SettingsState;
 use crate::screens::setup::SetupState;
@@ -97,13 +97,12 @@ pub struct MainUi {
 }
 
 impl MainUi {
-
     pub fn new() -> MainUi {
         let settings = Settings::load().unwrap();
         MainUi {
             settings,
-            state: StartupState::new().into(),//AppState::load().unwrap(),
-            popup: None,
+            state: StartupState::new().into(), //AppState::load().unwrap(),
+            popup: None
         }
     }
 
@@ -115,17 +114,13 @@ impl MainUi {
     }
 
     pub fn widget() -> impl Widget<MainUi> + 'static {
-        let main = AppState::widget()
-            .lens(MainUi::state);
-        let popup = Maybe::or_empty(PopupState::widget)
-            .lens(MainUi::popup);
+        let main = AppState::widget().lens(MainUi::state);
+        let popup = Maybe::or_empty(PopupState::widget).lens(MainUi::popup);
         ZStack::new(main)
             .with_centered_child(popup)
             .env_scope(|env, ui: &MainUi| setup_theme(ui.current_theme(), env))
     }
-
 }
-
 
 #[derive(Clone, Data, Prism)]
 pub enum AppState {
@@ -134,7 +129,7 @@ pub enum AppState {
     Settings(SettingsState),
     Editor(EditState),
     Account(AccountState),
-    Setup(SetupState),
+    Setup(SetupState)
 }
 
 impl AppState {
@@ -157,5 +152,4 @@ impl AppState {
             _ => None
         }
     }
-
 }
