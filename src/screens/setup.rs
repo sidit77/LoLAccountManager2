@@ -9,7 +9,7 @@ use druid_widget_nursery::ComputedWidget;
 
 use crate::data::{Database, Password, Settings};
 use crate::screens::main::MainState;
-use crate::screens::{AppState, Screen};
+use crate::screens::{AppState, Navigator, Screen};
 use crate::util::{password_field, path_field, PathOptions};
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
@@ -170,7 +170,7 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                     };
                     Password::store(&db.path, &db.password).unwrap();
                     settings.save().unwrap();
-                    state.open(ctx, MainState::new(settings, db));
+                    ctx.open(MainState::new(settings, db));
                 })
                 .disabled_if(|state: &SetupState, _| state.state.check().is_err())
         )

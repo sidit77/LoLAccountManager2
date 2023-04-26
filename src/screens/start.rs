@@ -2,7 +2,7 @@ use std::thread::spawn;
 use druid::{Data, Env, LifeCycle, LifeCycleCtx, Widget, WidgetExt};
 use druid::widget::{Controller, Flex, Label, Spinner};
 use crate::data::{Database, Password, Settings};
-use crate::screens::{AppState, MainUi, Screen};
+use crate::screens::{AppState, MainUi, Navigator, Screen};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
 
@@ -48,7 +48,7 @@ impl<W: Widget<StartupState>> Controller<StartupState, W> for LoadDatabase {
     fn lifecycle(&mut self, child: &mut W, ctx: &mut LifeCycleCtx, event: &LifeCycle, data: &StartupState, env: &Env) {
         if let LifeCycle::WidgetAdded = event {
             match data.settings.last_database.clone() {
-                None => data.open_lifecycle(ctx, AppState::Setup(SetupState::new(data.settings.clone()))),
+                None => ctx.get_external_handle().open(SetupState::new(data.settings.clone())),
                 Some(path) => {
                     let handle = ctx.get_external_handle();
                     let settings = data.settings.clone();

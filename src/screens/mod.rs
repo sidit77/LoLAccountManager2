@@ -8,7 +8,7 @@ mod popup;
 
 use druid::theme::BACKGROUND_DARK;
 use druid::widget::{Controller, Maybe, ZStack};
-use druid::{Application, Data, Env, Event, EventCtx, ExtEventSink, Lens, LifeCycleCtx, Selector, Widget, WidgetExt};
+use druid::{Application, Data, Env, Event, EventCtx, ExtEventSink, Lens, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
@@ -23,17 +23,7 @@ use crate::screens::setup::SetupState;
 use crate::screens::start::StartupState;
 use crate::util::theme::setup_theme;
 
-pub const NAVIGATE: Selector<AppState> = Selector::new("lol_account_manager_v2.navigate");
-
 pub trait Screen: Into<AppState> {
-
-    fn open(&self, ctx: &mut EventCtx, screen: impl Into<AppState>) {
-        ctx.submit_command(NAVIGATE.with(screen.into()))
-    }
-
-    fn open_lifecycle(&self, ctx: &mut LifeCycleCtx, screen: impl Into<AppState>) {
-        ctx.submit_command(NAVIGATE.with(screen.into()))
-    }
 
     fn widget() -> Box<dyn Widget<Self>>;
 
@@ -49,6 +39,7 @@ pub trait Navigator {
     fn close_popup(self);
     fn open_popup(self, popup: PopupState);
     fn back(self);
+    fn open(self, screen: impl Into<AppState>);
 }
 
 impl Navigator for &mut MainUi {
@@ -68,6 +59,10 @@ impl Navigator for &mut MainUi {
             self.state = previous;
         }
     }
+
+    fn open(self, screen: impl Into<AppState>) {
+        self.state = screen.into();
+    }
 }
 
 impl Navigator for &ExtEventSink {
@@ -82,6 +77,11 @@ impl Navigator for &ExtEventSink {
     fn back(self) {
         self.add_idle_callback(|ui: &mut MainUi| ui.back())
     }
+
+    fn open(self, screen: impl Into<AppState>) {
+        let screen = screen.into();
+        self.add_idle_callback(|ui: &mut MainUi| ui.open(screen))
+    }
 }
 
 impl Navigator for &EventCtx<'_, '_> {
@@ -95,6 +95,10 @@ impl Navigator for &EventCtx<'_, '_> {
 
     fn back(self) {
         self.get_external_handle().back()
+    }
+
+    fn open(self, screen: impl Into<AppState>) {
+        self.get_external_handle().open(screen)
     }
 }
 
@@ -181,9 +185,6 @@ struct AppController;
 impl Controller<AppState, Switcher<AppState>> for AppController {
     fn event(&mut self, child: &mut Switcher<AppState>, ctx: &mut EventCtx, event: &Event, data: &mut AppState, env: &Env) {
         if let Event::Command(cmd) = event {
-            if let Some(state) = cmd.get(NAVIGATE).cloned() {
-                *data = state;
-            }
             if let Some(acc) = cmd.get(ACCOUNT_LOGIN).cloned() {
                 os::login_account(&acc).unwrap();
                 if data.settings().close_on_login {

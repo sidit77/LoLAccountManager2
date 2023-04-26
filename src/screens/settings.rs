@@ -116,7 +116,7 @@ fn database_ui() -> impl Widget<SettingsState> {
                     Button::new("Change")
                         .on_click(|ctx, state: &mut SettingsState, _| {
                             state.save();
-                            state.open(ctx, SetupState::new(state.settings.clone()));
+                            ctx.open(SetupState::new(state.settings.clone()));
                         })
                         .expand_width(),
                     1.0

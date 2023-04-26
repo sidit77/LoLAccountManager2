@@ -70,7 +70,7 @@ fn build_edit_ui() -> impl Widget<EditState> {
                 .main_axis_alignment(MainAxisAlignment::SpaceEvenly)
                 .with_flex_child(
                     icon_text_button(ADD, "New")
-                        .on_click(|ctx, state: &mut EditState, _| state.open(ctx, AccountState::new(state.clone())))
+                        .on_click(|ctx, state: &mut EditState, _| ctx.open(AccountState::new(state.clone())))
                         .expand(),
                     1.0
                 )
@@ -177,7 +177,7 @@ impl<W: Widget<EditState>> Controller<EditState, W> for ListController {
     fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut EditState, env: &Env) {
         if let Event::Command(cmd) = event {
             if let Some(index) = cmd.get(EDIT_ACCOUNT).cloned() {
-                data.open(ctx, AccountState::existing(data.clone(), index));
+                ctx.open(AccountState::existing(data.clone(), index));
             }
             if let Some(index) = cmd.get(DELETE_ACCOUNT).cloned() {
                 data.database.accounts.remove(index);

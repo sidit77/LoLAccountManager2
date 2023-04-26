@@ -8,7 +8,7 @@ use druid_material_icons::normal::image::EDIT;
 use crate::data::{Account, Database, Settings};
 use crate::screens::edit::EditState;
 use crate::screens::settings::SettingsState;
-use crate::screens::{AppState, Screen};
+use crate::screens::{AppState, Navigator, Screen};
 use crate::widgets::{Icon, WidgetButton};
 
 pub const ACCOUNT_LOGIN: Selector<Account> = Selector::new("lol_account_manager_v2.main.login");
@@ -72,12 +72,12 @@ fn build_main_ui() -> impl Widget<MainState> {
                 .with_spacer(3.0)
                 .with_child(
                     WidgetButton::new(Icon::new(EDIT).expand_height().padding(3.0))
-                        .on_click(|ctx, state: &mut MainState, _| state.open(ctx, EditState::from(state.clone())))
+                        .on_click(|ctx, state: &mut MainState, _| ctx.open(EditState::from(state.clone())))
                 )
                 .with_spacer(3.0)
                 .with_child(
                     WidgetButton::new(Icon::new(SETTINGS).expand_height().padding(3.0))
-                        .on_click(|ctx, state: &mut MainState, _| state.open(ctx, SettingsState::from(state.clone())))
+                        .on_click(|ctx, state: &mut MainState, _| ctx.open(SettingsState::from(state.clone())))
                 )
                 .expand_width()
                 .fix_height(50.0)
