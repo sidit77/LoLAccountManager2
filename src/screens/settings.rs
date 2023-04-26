@@ -5,7 +5,7 @@ use druid::{Data, EventCtx, Lens, Widget, WidgetExt};
 use crate::data::{Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
-use crate::screens::{AppState, MainUi, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator};
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {
@@ -33,14 +33,6 @@ impl From<SettingsState> for AppState {
     fn from(value: SettingsState) -> Self {
         Self::Settings(value)
     }
-}
-
-impl Screen for SettingsState {
-
-    fn previous(&self) -> Option<AppState> {
-        Some(self.previous.clone().into())
-    }
-
 }
 
 fn build_settings_ui() -> impl Widget<SettingsState> {

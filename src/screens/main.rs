@@ -9,7 +9,7 @@ use crate::data::{Account, Database};
 use crate::os;
 use crate::screens::edit::EditState;
 use crate::screens::settings::SettingsState;
-use crate::screens::{AppState, MainUi, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator};
 use crate::widgets::{Icon, WidgetButton};
 
 #[derive(Clone, Data, Lens)]
@@ -34,13 +34,6 @@ impl MainState {
 impl From<MainState> for AppState {
     fn from(value: MainState) -> Self {
         Self::Main(value)
-    }
-}
-
-impl Screen for MainState {
-
-    fn previous(&self) -> Option<AppState> {
-        None
     }
 }
 

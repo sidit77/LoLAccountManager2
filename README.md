@@ -15,6 +15,7 @@ Reasons for this rewrite:
 - [ ] Remove custom fork of `age`
 - [ ] Implement error handling
 - [ ] Implement export options
+- [ ] Block closing until saving is complete
 
 ## Demo
 

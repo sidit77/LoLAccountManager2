@@ -22,14 +22,6 @@ use crate::screens::setup::SetupState;
 use crate::screens::start::StartupState;
 use crate::util::theme::setup_theme;
 
-pub trait Screen: Into<AppState> {
-
-    fn previous(&self) -> Option<AppState> {
-        None
-    }
-
-}
-
 pub trait Navigator {
     fn close_popup(self);
     fn open_popup(self, popup: PopupState);
@@ -157,18 +149,12 @@ impl AppState {
             .background(BACKGROUND_DARK)
     }
 
-}
-
-impl Screen for AppState {
-
     fn previous(&self) -> Option<AppState> {
         match self {
-            AppState::Main(state) => state.previous(),
-            AppState::Settings(state) => state.previous(),
-            AppState::Editor(state) => state.previous(),
-            AppState::Account(state) => state.previous(),
-            AppState::Setup(state) => state.previous(),
-            AppState::Start(state) => state.previous()
+            AppState::Settings(state) => Some(state.previous.clone().into()),
+            AppState::Editor(state) => Some(state.previous.clone().into()),
+            AppState::Account(state) => Some(state.previous.clone().into()),
+            _ => None
         }
     }
 

@@ -9,7 +9,7 @@ use druid_widget_nursery::ComputedWidget;
 
 use crate::data::{Database, Password};
 use crate::screens::main::MainState;
-use crate::screens::{AppState, MainUi, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator};
 use crate::util::{password_field, path_field, PathOptions};
 
 const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
@@ -33,10 +33,6 @@ impl From<SetupState> for AppState {
     fn from(value: SetupState) -> Self {
         Self::Setup(value)
     }
-}
-
-impl Screen for SetupState {
-
 }
 
 impl SetupState {

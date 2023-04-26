@@ -7,7 +7,7 @@ use druid_material_icons::normal::navigation::CLOSE;
 
 use crate::data::Account;
 use crate::screens::edit::EditState;
-use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::{AppState, Navigator};
 use crate::screens::popup::PopupState;
 use crate::util::{field, icon_text_button, multiline_field, password_field};
 
@@ -58,14 +58,6 @@ impl From<AccountState> for AppState {
     fn from(value: AccountState) -> Self {
         AppState::Account(value)
     }
-}
-
-impl Screen for AccountState {
-
-    fn previous(&self) -> Option<AppState> {
-        Some(self.previous.clone().into())
-    }
-
 }
 
 impl AccountState {

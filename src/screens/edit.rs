@@ -10,7 +10,7 @@ use druid_material_icons::normal::navigation::{ARROW_DROP_DOWN, ARROW_DROP_UP, C
 use crate::data::{Account, Database};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
-use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::{AppState, Navigator};
 use crate::screens::popup::PopupState;
 use crate::util::{icon_text_button, IndexWrapper, Indexed};
 use crate::widgets::{Icon, WidgetButton};
@@ -50,14 +50,6 @@ impl From<EditState> for AppState {
     fn from(value: EditState) -> Self {
         AppState::Editor(value)
     }
-}
-
-impl Screen for EditState {
-
-    fn previous(&self) -> Option<AppState> {
-        Some(self.previous.clone().into())
-    }
-
 }
 
 fn build_edit_ui() -> impl Widget<EditState> {

@@ -2,7 +2,7 @@ use std::thread::spawn;
 use druid::{Data, Env, LifeCycle, LifeCycleCtx, Widget, WidgetExt};
 use druid::widget::{Controller, Flex, Label, Spinner};
 use crate::data::{Database, Password};
-use crate::screens::{AppState, MainUi, Navigator, Screen};
+use crate::screens::{AppState, MainUi, Navigator};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
 
@@ -30,10 +30,6 @@ impl From<StartupState> for AppState {
     fn from(value: StartupState) -> Self {
         AppState::Start(value)
     }
-}
-
-impl Screen for StartupState {
-
 }
 
 struct LoadDatabase;
