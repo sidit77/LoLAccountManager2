@@ -58,6 +58,8 @@ pub trait Screen: Into<AppState> {
 
 pub trait Navigator {
     fn close_popup(&self);
+    fn open_popup(&self, popup: PopupState);
+    fn back(&self);
 }
 
 impl Navigator for EventCtx<'_, '_> {
@@ -65,6 +67,21 @@ impl Navigator for EventCtx<'_, '_> {
         self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
             if let Some(popup) = ui.popup.take() {
                 popup.close()
+            }
+        })
+    }
+
+    fn open_popup(&self, popup: PopupState) {
+        self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+            debug_assert!(ui.popup.is_none());
+            ui.popup = Some(popup);
+        })
+    }
+
+    fn back(&self) {
+        self.get_external_handle().add_idle_callback(|ui: &mut MainUi| {
+            if let Some(previous) = ui.state.previous() {
+                ui.state = previous;
             }
         })
     }
@@ -81,7 +98,7 @@ impl MainUi {
     pub fn new() -> MainUi {
         MainUi {
             state: StartupState::new().into(),//AppState::load().unwrap(),
-            popup: Some(PopupState::Leave("Test".to_string())),
+            popup: None,
         }
     }
     

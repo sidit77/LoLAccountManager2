@@ -9,7 +9,8 @@ use druid_material_icons::normal::navigation::{ARROW_DROP_DOWN, ARROW_DROP_UP, C
 use crate::data::{Account, Database, Settings};
 use crate::screens::account::AccountState;
 use crate::screens::main::MainState;
-use crate::screens::{AppState, Screen};
+use crate::screens::{AppState, Navigator, Screen};
+use crate::screens::popup::PopupState;
 use crate::util::{icon_text_button, IndexWrapper, Indexed};
 use crate::widgets::{Icon, WidgetButton};
 
@@ -30,6 +31,14 @@ impl From<MainState> for EditState {
             previous: ms
         }
     }
+}
+
+impl EditState {
+
+    fn unsaved_changes(&self) -> bool {
+        self.database != self.previous.database
+    }
+
 }
 
 impl From<EditState> for AppState {
@@ -71,14 +80,20 @@ fn build_edit_ui() -> impl Widget<EditState> {
                 .with_spacer(3.0)
                 .with_flex_child(
                     icon_text_button(SAVE, "Save")
-                        .on_click(|ctx, state: &mut EditState, _| state.back(ctx, true))
+                        .on_click(|ctx, state: &mut EditState, _| match state.unsaved_changes() {
+                            false => state.back(ctx, false),
+                            true => state.back(ctx, true)
+                        })
                         .expand(),
                     1.0
                 )
                 .with_spacer(3.0)
                 .with_flex_child(
                     icon_text_button(CLOSE, "Discard")
-                        .on_click(|ctx, state: &mut EditState, _| state.back(ctx, false))
+                        .on_click(|ctx, state: &mut EditState, _| match state.unsaved_changes() {
+                            false => state.back(ctx, false),
+                            true => ctx.open_popup(PopupState::Leave(()))
+                        })
                         .expand(),
                     1.0
                 ) //Button::new("O").expand()

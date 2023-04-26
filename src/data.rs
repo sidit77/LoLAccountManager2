@@ -58,7 +58,7 @@ impl Settings {
     }
 }
 
-#[derive(Debug, Clone, Default, Data, Lens, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Data, Lens, Serialize, Deserialize)]
 pub struct Account {
     pub name: String,
     pub username: String,
@@ -67,7 +67,7 @@ pub struct Account {
     pub notes: String
 }
 
-#[derive(Debug, Clone, Data, Lens)]
+#[derive(Debug, Clone, Data, Lens, PartialEq)]
 pub struct Database {
     pub accounts: Vector<Account>,
     pub password: String,
