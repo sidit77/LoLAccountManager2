@@ -1,9 +1,9 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use age::secrecy::Secret;
-use age::{Decryptor, Encryptor, WorkFactor};
+use age::{Decryptor, Encryptor};
 use anyhow::bail;
 use directories::BaseDirs;
 use druid::im::Vector;
@@ -122,8 +122,7 @@ impl Database {
             std::fs::create_dir_all(path)?;
         }
         let time = Instant::now();
-        let encryptor =
-            Encryptor::with_user_passphrase_and_work_factor(Secret::new(self.password.clone()), WorkFactor::TimeBased(Duration::from_millis(250)));
+        let encryptor = Encryptor::with_user_passphrase(Secret::new(self.password.clone()));
         let file = File::create(path)?;
         let mut writer = encryptor.wrap_output(file)?;
         serde_yaml::to_writer(&mut writer, &self.accounts)?;

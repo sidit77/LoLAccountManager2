@@ -11,12 +11,6 @@ Reasons for this rewrite:
   * Almost cross-platform
 * 🦀
 
-## Todo
-- [ ] Remove custom fork of `age`
-- [x] Implement error handling
-- [x] Implement export options
-- [x] Block closing until saving is complete
-
 ## Demo
 
 https://user-images.githubusercontent.com/5053369/223086843-caba0799-02a4-4530-9dbd-67ad6e9269a2.mp4

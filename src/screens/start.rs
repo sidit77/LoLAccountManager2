@@ -18,8 +18,9 @@ impl StartupState {
 
     pub fn widget() -> impl Widget<Self> + 'static {
         Flex::column()
+            .with_child(Label::new("Decrypting Database..."))
+            .with_spacer(5.0)
             .with_child(Spinner::new())
-            .with_child(Label::new("Loading..."))
             .controller(LoadDatabase)
             .center()
     }
