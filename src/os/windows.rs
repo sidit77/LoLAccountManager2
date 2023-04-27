@@ -1,7 +1,7 @@
 use std::mem::size_of;
 use std::time::Duration;
 
-use anyhow::ensure;
+use anyhow::{ensure, Context};
 use windows::core::PCWSTR;
 use windows::w;
 use windows::Win32::Foundation::RECT;
@@ -16,12 +16,14 @@ pub fn login_account(account: &Account) -> anyhow::Result<()> {
         println!("Logging in...");
 
         let window = FindWindowW(PCWSTR::null(), w!("Riot Client Main"));
-        ensure!(window.0 != 0);
-        BringWindowToTop(window).ok()?;
+        ensure!(window.0 != 0, "Could not find Riot Client");
+        BringWindowToTop(window)
+            .ok()
+            .context("Failed to bring client to the top")?;
 
         let mut rct = RECT::default();
         GetWindowRect(window, &mut rct).ok()?;
-        IsWindowVisible(window).ok()?;
+        IsWindowVisible(window).ok().context("Client not visible")?;
 
         std::thread::sleep(Duration::from_millis(100));
 
@@ -69,7 +71,7 @@ pub fn login_account(account: &Account) -> anyhow::Result<()> {
         input.push(get_keyboard_event(VK_RETURN, 0, KEYEVENTF_KEYUP));
 
         let sent = SendInput(&input, size_of::<INPUT>() as i32) as usize;
-        ensure!(sent == input.len());
+        ensure!(sent == input.len(), "Failed to send all input");
 
         Ok(())
     }

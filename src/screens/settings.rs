@@ -27,9 +27,9 @@ impl SettingsState {
     fn save(&self, ctx: &EventCtx) {
         let settings = self.settings.clone();
         ctx.get_external_handle()
-            .add_idle_callback(move |ui: &mut MainUi| {
-                settings.save().unwrap();
-                ui.settings = settings;
+            .add_idle_callback(move |ui: &mut MainUi| match settings.save() {
+                Ok(()) => ui.settings = settings,
+                Err(err) => ui.open_popup(err.into())
             })
     }
 
@@ -204,7 +204,7 @@ impl<W: Widget<SettingsState>> Controller<SettingsState, W> for Exporter {
                     Some(YAML) => data.export_yml(&file.path),
                     _ => Err(anyhow!("Unknown Format"))
                 }
-                .unwrap_or_else(|err| println!("export error: {}", err)) //TODO error popup
+                .unwrap_or_else(|err| ctx.open_popup(err.into()))
             }
         }
         child.event(ctx, event, data, env)

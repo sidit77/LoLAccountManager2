@@ -14,7 +14,10 @@ use serde::{Deserialize, Serialize};
 
 static CONFIG_PATH: Lazy<PathBuf> = Lazy::new(|| {
     let mut pargs = pico_args::Arguments::from_env();
-    match pargs.opt_value_from_str("--config-path").unwrap() {
+    match pargs
+        .opt_value_from_str("--config-path")
+        .expect("Failed to parse command line arguments")
+    {
         Some(config_dir) => config_dir,
         None => BaseDirs::new()
             .expect("Could find the settings path")

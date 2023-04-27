@@ -157,15 +157,24 @@ fn build_setup_ui() -> impl Widget<SetupState> {
                 .expand_width()
                 .fix_height(50.0)
                 .on_click(|ctx, state: &mut SetupState, _| {
-                    let db = Database::try_from(state.state.clone()).unwrap();
-                    let path = db.path.clone();
-                    ctx.get_external_handle()
-                        .add_idle_callback(|ui: &mut MainUi| {
-                            ui.settings.last_database = Some(path);
-                            ui.settings.save().unwrap();
-                        });
-                    Password::store(&db.path, &db.password).unwrap();
-                    ctx.open(MainState::new(db));
+                    let db = Database::try_from(state.state.clone());
+                    match db {
+                        Ok(db) => {
+                            let path = db.path.clone();
+                            ctx.get_external_handle()
+                                .add_idle_callback(|ui: &mut MainUi| {
+                                    ui.settings.last_database = Some(path);
+                                    if let Err(err) = ui.settings.save() {
+                                        ui.open_popup(err.into())
+                                    }
+                                });
+                            if let Err(err) = Password::store(&db.path, &db.password) {
+                                ctx.open_popup(anyhow::Error::from(err).into())
+                            }
+                            ctx.open(MainState::new(db));
+                        }
+                        Err(err) => ctx.open_popup(err.into())
+                    }
                 })
                 .disabled_if(|state: &SetupState, _| state.state.check().is_err())
         )

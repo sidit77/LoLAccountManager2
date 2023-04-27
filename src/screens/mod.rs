@@ -37,7 +37,9 @@ impl Navigator for &mut MainUi {
     }
 
     fn open_popup(self, popup: PopupState) {
-        debug_assert!(self.popup.is_none());
+        if self.popup.is_some() {
+            self.close_popup();
+        }
         self.popup = Some(popup);
     }
 
@@ -100,7 +102,7 @@ impl MainUi {
     pub fn new() -> MainUi {
         let (settings, popup) = Settings::load()
             .map(|settings| (settings, None))
-            .unwrap_or_else(|err| (Settings::default(), Some(PopupState::error(err.to_string()))));
+            .unwrap_or_else(|err| (Settings::default(), Some(err.into())));
         MainUi {
             settings,
             state: StartupState::new().into(), //AppState::load().unwrap(),

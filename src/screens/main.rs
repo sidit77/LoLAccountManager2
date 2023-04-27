@@ -105,14 +105,15 @@ fn build_main_ui() -> impl Widget<MainState> {
 
 fn item_ui() -> impl Widget<Account> {
     Button::new(|item: &Account, _: &_| item.name.to_string())
-        .on_click(|ctx, acc: &mut Account, _| {
-            os::login_account(acc).unwrap();
-            ctx.get_external_handle()
+        .on_click(|ctx, acc: &mut Account, _| match os::login_account(acc) {
+            Ok(()) => ctx
+                .get_external_handle()
                 .add_idle_callback(|ui: &mut MainUi| {
                     if ui.settings.close_on_login {
                         Application::global().quit();
                     }
-                });
+                }),
+            Err(err) => ctx.open_popup(err.into())
         })
         .expand()
         .height(50.0)

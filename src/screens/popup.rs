@@ -13,6 +13,13 @@ pub enum PopupState {
     Error(String)
 }
 
+impl From<anyhow::Error> for PopupState {
+    fn from(value: anyhow::Error) -> Self {
+        eprintln!("{}\n{}", value, value.backtrace());
+        Self::Error(value.to_string())
+    }
+}
+
 impl PopupState {
     pub fn saving() -> Self {
         Self::Saving(false)
@@ -20,10 +27,6 @@ impl PopupState {
 
     pub fn confirm_discard() -> Self {
         Self::Leave(())
-    }
-
-    pub fn error(content: impl Into<String>) -> Self {
-        Self::Error(content.into())
     }
 
     pub fn widget() -> impl Widget<Self> + 'static {
@@ -45,18 +48,24 @@ impl PopupState {
 
 fn error_popup() -> impl Widget<String> + 'static {
     Flex::column()
-        .with_child(Label::new("Error")
-            .with_font(FontDescriptor::new(FontFamily::SYSTEM_UI)
-                .with_weight(FontWeight::SEMI_BOLD))
-            .with_text_size(15.0))
+        .with_child(
+            Label::new("Error")
+                .with_font(FontDescriptor::new(FontFamily::SYSTEM_UI).with_weight(FontWeight::SEMI_BOLD))
+                .with_text_size(15.0)
+        )
         .with_spacer(5.0)
-        .with_flex_child(Label::dynamic(|data: &String, _| data.clone())
-            .with_line_break_mode(LineBreaking::WordWrap)
-            .center(), 1.0)
+        .with_flex_child(
+            Label::dynamic(|data: &String, _| data.clone())
+                .with_line_break_mode(LineBreaking::WordWrap)
+                .center(),
+            1.0
+        )
         .with_spacer(5.0)
-        .with_child(Button::new("Close")
-            .on_click(|ctx, _, _| ctx.close_popup())
-            .expand_width())
+        .with_child(
+            Button::new("Close")
+                .on_click(|ctx, _, _| ctx.close_popup())
+                .expand_width()
+        )
         .padding(6.0)
         .fix_size(200.0, 130.0)
         .background(BACKGROUND_DARK)

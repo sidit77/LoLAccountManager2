@@ -70,10 +70,14 @@ fn build_edit_ui() -> impl Widget<EditState> {
                             let handle = ctx.get_external_handle();
                             let db = state.database.clone();
                             state.previous.database = db.clone();
-                            spawn(move || {
-                                db.save().unwrap();
-                                handle.close_popup();
-                                handle.back();
+                            spawn(move || match db.save() {
+                                Ok(()) => {
+                                    handle.close_popup();
+                                    handle.back();
+                                }
+                                Err(err) => {
+                                    handle.open_popup(err.into());
+                                }
                             });
                         })
                         .disabled_if(|state: &EditState, _| !state.unsaved_changes())

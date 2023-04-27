@@ -44,11 +44,16 @@ impl<W: Widget<StartupState>> Controller<StartupState, W> for LoadDatabase {
                     Some(path) => {
                         spawn(move || {
                             println!("Start loading database");
-                            let password = Password::get(&path).unwrap();
-                            let database = Database::load(&path, &password).unwrap();
-                            handle.add_idle_callback(move |main: &mut MainUi| {
-                                main.state = AppState::Main(MainState::new(database));
-                            });
+                            let database = Password::get(&path)
+                                .map_err(anyhow::Error::from)
+                                .and_then(|pw| Database::load(&path, &pw));
+                            match database {
+                                Ok(database) => handle.open(MainState::new(database)),
+                                Err(err) => {
+                                    handle.open_popup(err.into());
+                                    handle.open(SetupState::new());
+                                }
+                            }
                             println!("Finished loading database");
                         });
                     }

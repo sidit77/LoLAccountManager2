@@ -13,7 +13,7 @@ Reasons for this rewrite:
 
 ## Todo
 - [ ] Remove custom fork of `age`
-- [ ] Implement error handling
+- [x] Implement error handling
 - [x] Implement export options
 - [x] Block closing until saving is complete
 
