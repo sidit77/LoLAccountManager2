@@ -98,11 +98,13 @@ pub struct MainUi {
 
 impl MainUi {
     pub fn new() -> MainUi {
-        let settings = Settings::load().unwrap();
+        let (settings, popup) = Settings::load()
+            .map(|settings| (settings, None))
+            .unwrap_or_else(|err| (Settings::default(), Some(PopupState::error(err.to_string()))));
         MainUi {
             settings,
             state: StartupState::new().into(), //AppState::load().unwrap(),
-            popup: None
+            popup
         }
     }
 
