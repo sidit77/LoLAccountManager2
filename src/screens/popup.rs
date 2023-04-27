@@ -90,7 +90,7 @@ fn leave_popup() -> impl Widget<()> + 'static {
         .with_child(
             Flex::row()
                 .with_flex_child(
-                    Button::new("Discard")
+                    Button::new("Ok")
                         .on_click(|ctx, _, _| {
                             ctx.close_popup();
                             ctx.back();
@@ -100,7 +100,7 @@ fn leave_popup() -> impl Widget<()> + 'static {
                 )
                 .with_spacer(3.0)
                 .with_flex_child(
-                    Button::new("Back")
+                    Button::new("Cancel")
                         .on_click(|ctx, _, _| ctx.close_popup())
                         .expand_width(),
                     1.0

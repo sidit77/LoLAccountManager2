@@ -1544,7 +1544,7 @@ dependencies = [
 
 [[package]]
 name = "lol_account_manager_v2"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "age",
  "anyhow",
