@@ -1,6 +1,6 @@
 use druid::theme::BACKGROUND_DARK;
-use druid::widget::{BackgroundBrush, Button, Flex, Label, Spinner};
-use druid::{Color, Data, Widget, WidgetExt};
+use druid::widget::{BackgroundBrush, Button, Controller, Flex, Label, Spinner};
+use druid::{Application, Color, Data, Env, Event, EventCtx, Widget, WidgetExt};
 use druid_widget_nursery::enum_switcher::Switcher;
 use druid_widget_nursery::prism::Prism;
 
@@ -9,10 +9,19 @@ use crate::screens::Navigator;
 #[derive(Clone, Data, Prism)]
 pub enum PopupState {
     Leave(()),
-    Saving(())
+    Saving(bool)
 }
 
 impl PopupState {
+
+    pub fn saving() -> Self {
+        Self::Saving(false)
+    }
+
+    pub fn confirm_discard() -> Self {
+        Self::Leave(())
+    }
+
     pub fn widget() -> impl Widget<Self> + 'static {
         Switcher::new()
             .with_variant(PopupStateLeave, leave_popup())
@@ -22,10 +31,15 @@ impl PopupState {
             .expand()
     }
 
-    pub fn close(self) {}
+    pub fn close(self) {
+        match self {
+            PopupState::Saving(true) => Application::global().quit(),
+            _ => {}
+        }
+    }
 }
 
-fn saving_popup() -> impl Widget<()> + 'static {
+fn saving_popup() -> impl Widget<bool> + 'static {
     Flex::column()
         .with_child(Label::new("Saving.."))
         .with_spacer(5.0)
@@ -34,6 +48,7 @@ fn saving_popup() -> impl Widget<()> + 'static {
         .fix_size(200.0, 100.0)
         .background(BACKGROUND_DARK)
         .rounded(5.0)
+        .controller(DelayClose)
 }
 
 fn leave_popup() -> impl Widget<()> + 'static {
@@ -62,4 +77,17 @@ fn leave_popup() -> impl Widget<()> + 'static {
         .fix_size(200.0, 100.0)
         .background(BACKGROUND_DARK)
         .rounded(5.0)
+}
+
+struct DelayClose;
+
+impl<W: Widget<bool>> Controller<bool, W> for DelayClose {
+    fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut bool, env: &Env) {
+        if let Event::WindowCloseRequested = event {
+            ctx.set_handled();
+            *data = true;
+            println!("Delaying the end of the application until saving is complete!");
+        }
+        child.event(ctx, event, data, env)
+    }
 }

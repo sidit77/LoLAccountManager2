@@ -108,7 +108,7 @@ fn build_account_ui() -> impl Widget<AccountState> {
                 .with_spacer(3.0)
                 .with_flex_child(
                     icon_text_button(CLOSE, "Cancel").on_click(|ctx, state: &mut AccountState, _| match state.unsaved_changes() {
-                        true => ctx.open_popup(PopupState::Leave(())),
+                        true => ctx.open_popup(PopupState::confirm_discard()),
                         false => ctx.back()
                     }),
                     1.0

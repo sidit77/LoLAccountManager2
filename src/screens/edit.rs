@@ -66,7 +66,7 @@ fn build_edit_ui() -> impl Widget<EditState> {
                 .with_flex_child(
                     icon_text_button(SAVE, "Save")
                         .on_click(|ctx, state: &mut EditState, _| {
-                            ctx.open_popup(PopupState::Saving(()));
+                            ctx.open_popup(PopupState::saving());
                             let handle = ctx.get_external_handle();
                             let db = state.database.clone();
                             state.previous.database = db.clone();
@@ -85,7 +85,7 @@ fn build_edit_ui() -> impl Widget<EditState> {
                     icon_text_button(CLOSE, "Discard")
                         .on_click(|ctx, state: &mut EditState, _| match state.unsaved_changes() {
                             false => ctx.back(),
-                            true => ctx.open_popup(PopupState::Leave(()))
+                            true => ctx.open_popup(PopupState::confirm_discard())
                         })
                         .expand(),
                     1.0
