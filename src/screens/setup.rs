@@ -12,9 +12,9 @@ use crate::screens::main::MainState;
 use crate::screens::{AppState, MainUi, Navigator};
 use crate::util::{password_field, path_field, PathOptions};
 
-const YAML: FileSpec = FileSpec::new("yaml file", &[".yml", ".yaml"]);
+const YAML: FileSpec = FileSpec::new("yaml file", &["yml", "yaml"]);
 
-const AGE_YAML: FileSpec = FileSpec::new("encrypted yaml file", &[".yml.age", ".yaml.age"]);
+const AGE_YAML: FileSpec = FileSpec::new("encrypted yaml file", &["yml.age", "yaml.age"]);
 
 #[derive(Clone, Data, Lens)]
 pub struct SetupState {

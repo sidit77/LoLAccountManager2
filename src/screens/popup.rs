@@ -13,7 +13,6 @@ pub enum PopupState {
 }
 
 impl PopupState {
-
     pub fn saving() -> Self {
         Self::Saving(false)
     }
@@ -32,9 +31,8 @@ impl PopupState {
     }
 
     pub fn close(self) {
-        match self {
-            PopupState::Saving(true) => Application::global().quit(),
-            _ => {}
+        if let PopupState::Saving(true) = self {
+            Application::global().quit()
         }
     }
 }

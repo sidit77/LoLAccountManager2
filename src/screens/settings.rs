@@ -1,11 +1,21 @@
+use std::ffi::OsStr;
+use std::fs::File;
+use std::io::{BufWriter, Write};
+use std::path::Path;
+
+use anyhow::anyhow;
+use druid::commands::{SAVE_FILE_AS, SHOW_SAVE_PANEL};
 use druid::theme::{BORDER_DARK, TEXTBOX_BORDER_RADIUS, TEXTBOX_BORDER_WIDTH};
-use druid::widget::{Button, Checkbox, CrossAxisAlignment, Flex, Label, LineBreaking, RadioGroup};
-use druid::{Data, EventCtx, Lens, Widget, WidgetExt};
+use druid::widget::{Button, Checkbox, Controller, CrossAxisAlignment, Flex, Label, LineBreaking, RadioGroup};
+use druid::{Data, Env, Event, EventCtx, FileDialogOptions, FileSpec, Lens, Widget, WidgetExt};
 
 use crate::data::{Settings, Theme};
 use crate::screens::main::MainState;
 use crate::screens::setup::SetupState;
 use crate::screens::{AppState, MainUi, Navigator};
+
+const YAML: FileSpec = FileSpec::new("yaml file", &["yml", "yaml"]);
+const TXT: FileSpec = FileSpec::new("text file", &["txt"]);
 
 #[derive(Clone, Data, Lens)]
 pub struct SettingsState {
@@ -21,6 +31,27 @@ impl SettingsState {
                 settings.save().unwrap();
                 ui.settings = settings;
             })
+    }
+
+    fn export_txt(&self, path: &Path) -> anyhow::Result<()> {
+        let file = File::create(path)?;
+        let mut writer = BufWriter::new(file);
+        for account in &self.previous.database.accounts {
+            writeln!(writer, "Name: {}", account.name)?;
+            writeln!(writer, "Username: {}", account.username)?;
+            writeln!(writer, "Password: {}", account.password)?;
+            writeln!(writer, "Notes:\n{}", account.notes)?;
+            writeln!(writer)?;
+        }
+        writer.flush()?;
+        Ok(())
+    }
+
+    fn export_yml(&self, path: &Path) -> anyhow::Result<()> {
+        let file = File::create(path)?;
+        let writer = BufWriter::new(file);
+        serde_yaml::to_writer(writer, &self.previous.database.accounts)?;
+        Ok(())
     }
 
     pub fn widget() -> impl Widget<Self> + 'static {
@@ -103,15 +134,17 @@ fn database_ui() -> impl Widget<SettingsState> {
                 )
                 .with_spacer(3.0)
                 .with_flex_child(
-                    Button::new("Export as YAML")
-                        .disabled_if(|_, _| true)
-                        .expand_width(),
-                    1.0
-                )
-                .with_spacer(3.0)
-                .with_flex_child(
-                    Button::new("Export as Text")
-                        .disabled_if(|_, _| true)
+                    Button::new("Export")
+                        .on_click(|ctx, _, _| {
+                            ctx.submit_command(
+                                SHOW_SAVE_PANEL.with(
+                                    FileDialogOptions::new()
+                                        .allowed_types(vec![YAML, TXT])
+                                        .default_name("accounts")
+                                        .default_type(TXT)
+                                )
+                            )
+                        })
                         .expand_width(),
                     1.0
                 )
@@ -120,6 +153,7 @@ fn database_ui() -> impl Widget<SettingsState> {
         .expand_width()
         .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
         .rounded(TEXTBOX_BORDER_RADIUS)
+        .controller(Exporter)
 }
 
 fn info_ui() -> impl Widget<SettingsState> {
@@ -148,4 +182,31 @@ fn info_ui() -> impl Widget<SettingsState> {
         .expand_width()
         .border(BORDER_DARK, TEXTBOX_BORDER_WIDTH)
         .rounded(TEXTBOX_BORDER_RADIUS)
+}
+
+struct Exporter;
+
+impl<W: Widget<SettingsState>> Controller<SettingsState, W> for Exporter {
+    fn event(&mut self, child: &mut W, ctx: &mut EventCtx, event: &Event, data: &mut SettingsState, env: &Env) {
+        if let Event::Command(cmd) = event {
+            if let Some(file) = cmd.get(SAVE_FILE_AS) {
+                let spec = file
+                    .path
+                    .extension()
+                    .and_then(OsStr::to_str)
+                    .and_then(|ext| {
+                        [TXT, YAML]
+                            .into_iter()
+                            .find(|spec| spec.extensions.contains(&ext))
+                    });
+                match spec {
+                    Some(TXT) => data.export_txt(&file.path),
+                    Some(YAML) => data.export_yml(&file.path),
+                    _ => Err(anyhow!("Unknown Format"))
+                }
+                .unwrap_or_else(|err| println!("export error: {}", err)) //TODO error popup
+            }
+        }
+        child.event(ctx, event, data, env)
+    }
 }

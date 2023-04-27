@@ -1,5 +1,5 @@
 # LoL Account Manager 2
-I got tired of having a `lolaccounts.txt` on my Desktop and manually copy and pasting passwords. This is a Rust rewrite of my [original account manager](https://github.com/sidit77/LoLAccountManager2).
+I got tired of having a `lolaccounts.txt` on my Desktop and manually copy and pasting passwords. This is a Rust rewrite of my [original account manager](https://github.com/sidit77/LoLAccountManager).
 Reasons for this rewrite:
 * Better encryption
 * Smaller binary
@@ -14,7 +14,7 @@ Reasons for this rewrite:
 ## Todo
 - [ ] Remove custom fork of `age`
 - [ ] Implement error handling
-- [ ] Implement export options
+- [x] Implement export options
 - [x] Block closing until saving is complete
 
 ## Demo
