@@ -17,21 +17,25 @@ jobs:
           fetch-depth: 0
           
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          profile: minimal
-          override: true
           target: x86_64-pc-windows-msvc
 
-      - name: Build binary
-        uses: actions-rs/cargo@v1
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build Binary
+        run: cargo build --release --locked --target=x86_64-pc-windows-msvc --color=always --verbose
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
         with:
-          command: build
-          args: --release --locked --target=x86_64-pc-windows-msvc --color=always --verbose
-          use-cross: false
-          
-      - name: Create release
+          name: x86_64-pc-windows-msvc
+          path: |
+            ./target/x86_64-pc-windows-msvc/release/lol_account_manager_v2.exe
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
           files: |
