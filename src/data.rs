@@ -33,11 +33,24 @@ pub enum Theme {
     Dark
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Data, Lens, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Data, Lens, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Settings {
     pub close_on_login: bool,
+    pub force_focus: bool,
     pub theme: Theme,
     pub last_database: Option<String>
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            close_on_login: true,
+            force_focus: true,
+            theme: Theme::Light,
+            last_database: None
+        }
+    }
 }
 
 impl Settings {
