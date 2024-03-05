@@ -15,7 +15,7 @@ pub fn login_account(account: &Account) -> anyhow::Result<()> {
     unsafe {
         println!("Logging in...");
 
-        let window = FindWindowW(PCWSTR::null(), w!("Riot Client Main"));
+        let window = FindWindowW(PCWSTR::null(), w!("Riot Client"));
         ensure!(window.0 != 0, "Could not find Riot Client");
         BringWindowToTop(window)
             .ok()
